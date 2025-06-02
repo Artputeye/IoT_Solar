@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hybrid Inverter Settings</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <h1>Hybrid Inverter Settings</h1>
+
+  <div class="toggle-container">
+    <div class="toggle-row">
+      <span>Grid-tie operation</span>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleSetting(this,'Grid-tie operation')">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <span>Beeps While Primary Source Interrupt</span>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleSetting(this,'Beeps While Primary Source Interrupt')">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <span>LCD Backlight</span>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleSetting(this,'LCD Backlight')">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <span>Return To The Main LCD Page</span>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleSetting(this,'Return To The Main LCD Page')">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <span>Power Saving Mode</span>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleSetting(this,'Power Saving Mode')">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <span>Over Temp Auto Restart</span>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleSetting(this,'Over Temp Auto Restart')">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <span>Led Pattern Light</span>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleSetting(this,'Led Pattern Light')">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <span>Buzzer</span>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleSetting(this,'Buzzer')">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <span>Dual Output</span>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleSetting(this,'Dual Output')">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <span>Overload Auto Restart</span>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleSetting(this,'Overload Auto Restart')">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <span>Transfer To Bypass Overload</span>
+      <label class="switch">
+        <input type="checkbox" onchange="toggleSetting(this,'Transfer To Bypass Overload')">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 30px;">
+    <a href="home.html">
+        <button class="home-button">🔙 Return Home</button>
+    </a>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
