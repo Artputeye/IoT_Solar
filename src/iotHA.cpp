@@ -1,17 +1,8 @@
-#include <WiFi.h>
-#include <ArduinoHA.h>
-#include <esp_wifi.h>
-#include "wifiConfig.h"
-#include "invCommand.h"
-#include "ota.h"
+#include "globals.h"
 #include "iotHA.h"
 
 uint8_t Mac[6];
-WiFiClient client;
-HADevice device;
-HAMqtt mqtt(client, device);
 
-// object define
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Switch object define
 HASwitch grid("grid");

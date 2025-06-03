@@ -1,4 +1,4 @@
-
+#include "globals.h"
 #include "wifiConfig.h"
 #include "serv.h"
 #include "ota.h"
@@ -31,6 +31,41 @@ void setup()
   setupServer();
 }
 
+void ledIndicator();
+
 void loop()
 {
+  // Main function
+  mqtt.loop(); 
+  ArduinoOTA.handle();
+  ledIndicator();
+
+  if ((millis() - lastTime1) > timerDelay1) {
+    lastTime1 = millis();
+    inv.cmd_inv("QPIGS");
+    inv.Response();
+    iotHA();
+    test = inv.test;
+    //Serial.println("Main function");
+  }
+
+  //Manual function
+  if ((millis() - lastTime2) > timerDelay2) {
+    lastTime2 = millis();
+    inv.serialSent();
+    inv.Response();
+  }
+
+}
+
+void ledIndicator() {
+  if ((millis() - last) > t) {
+    last = millis();
+    if (ledState == LOW) {
+      ledState = HIGH;
+    } else {
+      ledState = LOW;
+    }
+    digitalWrite(LED, ledState);
+  }
 }
