@@ -1,11 +1,5 @@
+#include "globals.h"
 #include "wifiConfig.h"
-#include "invCommand.h"
-
-char DEVICE_NAME[28] = "INVERTER";
-char MQTT_ADDR[16] = "192.168.101.100";
-char MQTT_USERNAME[28] = "mqtt-user";
-char MQTT_PASSWORD[28] = "1234";
-char MQTT_PORT[5] = "1883";
 
 bool shouldSaveConfig = false;
 

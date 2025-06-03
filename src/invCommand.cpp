@@ -1,5 +1,5 @@
 #include "invCommand.h"
-// ************************  invCommand Functions  ************************
+// ************************  invCommand class  ************************
 // public:
 
 void invCommand::serialSent()

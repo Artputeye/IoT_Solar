@@ -1,5 +1,5 @@
 #include <ArduinoOTA.h>
-#include "wifiConfig.h"
+#include "globals.h"
 
 void otaSetup(){
   ArduinoOTA.setHostname(DEVICE_NAME);

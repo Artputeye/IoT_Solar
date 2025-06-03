@@ -1,9 +1,9 @@
-#include "serv.h"
-#ifdef ESP32
-#include <LittleFS.h>
-#endif
+#include "globals.h"
 
-AsyncWebServer server(80);
+#include "serv.h"
+// #include <AsyncTCP.h>
+// #include <ESPAsyncWebServer.h>
+// AsyncWebServer server(80);
 
 void handlePostData(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
   String body = "";

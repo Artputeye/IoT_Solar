@@ -4,21 +4,19 @@
 #include <Arduino.h>
 #include <string.h>
 
-#define RX_pin 16
-#define TX_pin 17
-
 class invCommand
 {
 public:
   /***************************************** public variable********************************/
   String invData;
   String inputString;
-
   unsigned int len;
-  bool test;
-  bool print;
-  bool para;
-  bool format;
+
+  // parameter setting
+  bool test;   // test sent data to home assistant
+  bool print;  // serail print data
+  bool para;   // parameter reste
+  bool format; // fomat littleFS
 
   // Structure to store the data for QPIGS
   struct Vals_t
@@ -60,7 +58,5 @@ private:
   void sentinv(String data);
   void help();
 };
-
-extern invCommand inv; // ประกาศ global object เพื่อใช้นอก cpp
 
 #endif
