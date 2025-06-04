@@ -6,7 +6,6 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-
 void otaSetup();
 
 #endif

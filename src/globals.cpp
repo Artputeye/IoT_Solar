@@ -5,7 +5,6 @@ AsyncWebServer server(80);
 WiFiClient client;
 HADevice device;             // home assistant
 HAMqtt mqtt(client, device); // home assistant
-
 invCommand inv;              // command inverter
 
 char DEVICE_NAME[28] = "INVERTER"; //= "INVERTER";  //"Anern 4.2kW";  //"ARRTECH INVERTER";
