@@ -43,7 +43,16 @@ void setupServer()
   server.onNotFound([](AsyncWebServerRequest *request)
                     {
     String path = request->url();
-    if (path == "/") path = "/index.html";
+    //if (path == "/") path = "/index.html";
+
+  if (!path.endsWith(".html") && !path.endsWith(".css") && !path.endsWith(".js")){
+    if (path == "/") {
+      path = "/index.html";
+    } else {
+      path += ".html"; // เช่น /about -> /about.html
+    }
+  }
+    
     String contentType = getContentType(path);
     
     if (LittleFS.exists(path)) {
@@ -55,6 +64,9 @@ void setupServer()
   server.begin();
 }
 
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void dataToinv(String data)
 {
   if (data == "Grid-tie operation ON")
