@@ -127,8 +127,3 @@ void saveConfigCallback()
     shouldSaveConfig = true;
 }
 
-void fsformat()
-{
-    // clean FS, for testing
-    LittleFS.format();
-}

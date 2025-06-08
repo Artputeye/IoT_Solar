@@ -13,10 +13,11 @@ public:
   unsigned int len;
 
   // parameter setting
-  bool test;   // test sent data to home assistant
-  bool print;  // serail print data
-  bool para;   // parameter reste
-  bool format; // fomat littleFS
+  bool test = false;   // test sent data to home assistant
+  bool print = false;  // serail print data
+  bool para = false;   // parameter reste
+  bool format = false; // fomat littleFS
+  bool dir = false;    // dir littleFS
 
   // Structure to store the data for QPIGS
   struct Vals_t
@@ -45,7 +46,7 @@ public:
   } data;
 
   /**************************************** public function ********************************/
-  void readData();
+ 
   void serialSent();
   void Response();
   void cmd_inv(String data);

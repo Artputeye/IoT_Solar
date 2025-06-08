@@ -1,4 +1,5 @@
 #include "invCommand.h"
+
 // ************************  invCommand class  ************************
 // public:
 
@@ -150,12 +151,12 @@ void invCommand::cmd_inv(String data)
 
   /////////////////////////////////////////////////////////////////////////////////////////
   // ON/OFF Grind command to inverte
-  if (data == "grid on")
+  if (data == "grid on" || data == "Grid-tie operation ON")
   {
     Serial2.write(grind_on, sizeof(grind_on));
     sentinv(data);
   }
-  if (data == "grid off")
+  if (data == "grid off" || data == "Grid-tie operation OFF")
   {
     Serial2.write(grind_off, sizeof(grind_off));
     sentinv(data);
@@ -170,102 +171,102 @@ void invCommand::cmd_inv(String data)
     Serial2.write(ups, sizeof(ups));
     sentinv(data);
   }
-  if (data == "beeps on")
+  if (data == "beeps on" || data == "Beeps While Primary Source Interrupt ON")
   {
     Serial2.write(beeps_on, sizeof(beeps_on));
     sentinv(data);
   }
-  if (data == "beeps off")
+  if (data == "beeps off" || data == "Beeps While Primary Source Interrupt OFF")
   {
     Serial2.write(beeps_off, sizeof(beeps_off));
     sentinv(data);
   }
-  if (data == "blacklight on")
+  if (data == "blacklight on" || data == "LCD Backlight ON")
   {
     Serial2.write(blacklight_on, sizeof(blacklight_on));
     sentinv(data);
   }
-  if (data == "blacklight off")
+  if (data == "blacklight off" || data == "LCD Backlight OFF")
   {
     Serial2.write(blacklight_off, sizeof(blacklight_off));
     sentinv(data);
   }
-  if (data == "returnpage on")
+  if (data == "returnpage on" || data == "Return To The Main LCD Page ON")
   {
     Serial2.write(ledpattern_on, sizeof(ledpattern_on));
     sentinv(data);
   }
-  if (data == "returnpage off")
+  if (data == "returnpage off" || data == "Return To The Main LCD Page OFF")
   {
     Serial2.write(ledpattern_off, sizeof(ledpattern_off));
     sentinv(data);
   }
-  if (data == "saving on")
+  if (data == "saving on" || data == "Power Saving Mode ON")
   {
     Serial2.write(saving_on, sizeof(saving_on));
     sentinv(data);
   }
-  if (data == "saving off")
+  if (data == "saving off" || data == "Power Saving Mode OFF")
   {
     Serial2.write(saving_off, sizeof(saving_off));
     sentinv(data);
   }
-  if (data == "overtemp on")
+  if (data == "overtemp on" || data == "Over Temp Auto Restart ON")
   {
     Serial2.write(overtemp_on, sizeof(overtemp_on));
     sentinv(data);
   }
-  if (data == "overtemp off")
+  if (data == "overtemp off" || data == "Over Temp Auto Restart OFF")
   {
     Serial2.write(overtemp_off, sizeof(overtemp_off));
     sentinv(data);
   }
-  if (data == "ledpattern on")
+  if (data == "ledpattern on" || data == "Led Pattern Light ON")
   {
     Serial2.write(ledpattern_on, sizeof(ledpattern_on));
     sentinv(data);
   }
-  if (data == "ledpattern off")
+  if (data == "ledpattern off" || data == "Led Pattern Light ON")
   {
     Serial2.write(ledpattern_off, sizeof(ledpattern_off));
     sentinv(data);
   }
-  if (data == "buzzer on")
+  if (data == "buzzer on" || data == "Buzzer ON")
   {
     Serial2.write(buzzer_on, sizeof(buzzer_on));
     sentinv(data);
   }
-  if (data == "buzzer off")
+  if (data == "buzzer off" || data == "Buzzer OFF")
   {
     Serial2.write(buzzer_off, sizeof(buzzer_off));
     sentinv(data);
   }
-  if (data == "dualoutput on")
+  if (data == "dualoutput on" || data == "Dual Output ON")
   {
     Serial2.write(dualoutput_on, sizeof(dualoutput_on));
     sentinv(data);
   }
-  if (data == "dualoutput off")
+  if (data == "dualoutput off" || data == "Dual Output OFF")
   {
     Serial2.write(dualoutput_off, sizeof(dualoutput_off));
     sentinv(data);
   }
-  if (data == "overload on")
+  if (data == "overload on" || data == "Overload Auto Restart ON")
   {
     Serial2.write(overload_on, sizeof(overload_on));
     sentinv(data);
   }
-  if (data == "overload off")
+  if (data == "overload off" || data == "Overload Auto Restart OFF")
   {
     Serial2.write(overload_off, sizeof(overload_off));
     sentinv(data);
   }
-  if (data == "bypass on")
+  if (data == "bypass on" || data == "Transfer To Bypass Overload ON")
   {
     Serial2.write(bypass_on, sizeof(bypass_on));
     sentinv(data);
   }
-  if (data == "bypass off")
+  if (data == "bypass off" || data == "Transfer To Bypass Overload OFF")
   {
     Serial2.write(bypass_off, sizeof(bypass_off));
     sentinv(data);
@@ -334,10 +335,16 @@ void invCommand::cmd_inv(String data)
     para = true;
     Serial.println("Resset setting");
   }
-
+  /////////////////////////////////////////////////////////////////////////////////
+  // read DIR SPIFFS  
+  if (data == "littleFS")
+  {
+    dir = true;
+    Serial.println("read DIR SPIFFS");
+  }
   /////////////////////////////////////////////////////////////////////////////////
   // Format SPIFFS
-  if (data == "format")
+  if (data == "formatFS")
   {
     format = true;
     Serial.println("Format SPIFFS");

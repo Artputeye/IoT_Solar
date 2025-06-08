@@ -1,6 +1,17 @@
 #include "globals.h"
 #include "serv.h"
 const char *PARAM_MESSAGE PROGMEM = "plain";
+void clientCommand();
+void staticRoot();
+void notfoundRoot();
+
+void setupServer()
+{
+  clientCommand();
+  staticRoot();
+  notfoundRoot();
+  server.begin();
+}
 
 String getContentType(String filename)
 {
@@ -23,9 +34,8 @@ String getContentType(String filename)
   return "text/plain";
 }
 
-void setupServer()
+void clientCommand()
 {
-
   server.on("/post", HTTP_POST, [](AsyncWebServerRequest *request)
             {
     String message;
@@ -35,126 +45,73 @@ void setupServer()
       message = "No message sent";
       Serial.println("No message sent");
     }
-    dataToinv(message);
+    inv.cmd_inv(message);
     Serial.println("POST client: " + message);
     request->send(200, "text/plain", "POST: " + message); });
+}
 
-  // เสิร์ฟไฟล์ static จาก LittleFS
-  server.onNotFound([](AsyncWebServerRequest *request)
-                    {
+void staticRoot()
+{
+  // 1. จัดการ Root URL ("/") ให้ส่ง index.html
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
+    Serial.println("Request to '/': Serving /index.html");
+    request->send(LittleFS, "/index.html", "text/html"); });
+
+  // 2. จัดการ Path พิเศษที่ต้องการให้ลงท้ายด้วย .html
+  server.on("/set", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
+    Serial.println("Request to '/set': Serving /set.html");
+    request->send(LittleFS, "/set.html", "text/html"); });
+
+  server.on("/ota", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
+    Serial.println("Request to '/ota': Serving /ota.html");
+    request->send(LittleFS, "/ota.html", "text/html"); });
+
+  // 3. ใช้ server.serveStatic() สำหรับไฟล์ Static ทั่วไป
+  // This will handle all requests for files (e.g., /style.css, /script.js, /images/logo.png)
+  // ที่อยู่ใน LittleFS. It also handles the default index.html if a folder is accessed.
+  server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html"); // สำคัญ: กำหนดให้ /index.html เป็นค่าเริ่มต้นเมื่อเข้าถึง "/" หรือ /folder/
+}
+
+void notfoundRoot()
+{
+server.onNotFound([](AsyncWebServerRequest *request) {
     String path = request->url();
-    //if (path == "/") path = "/index.html";
+    Serial.println("Check1: " + path);
 
-  if (!path.endsWith(".html") && !path.endsWith(".css") && !path.endsWith(".js")){
+    // ถ้า path คือ root "/" → ให้เปลี่ยนเป็น index.html
     if (path == "/") {
       path = "/index.html";
-    } else {
-      path += ".html"; // เช่น /about -> /about.html
     }
-  }
-    
+    // ถ้าเป็น "/set" หรือ "/ota" (ไม่มีนามสกุล) ให้เพิ่ม ".html"
+    else if (path == "/set" || path == "/ota") {
+      path += ".html";
+    }
+    // ถ้า path ไม่มีนามสกุล และไม่ใช่ "/set" หรือ "/ota"
+    // เช่น "/myfolder" หรือ "/anotherpath"
+    // ให้ลองเพิ่ม "/index.html" ต่อท้าย (ถือว่าเป็นโฟลเดอร์)
+    else if (!(path.endsWith(".html") || path.endsWith(".css") || path.endsWith(".js") ||
+               path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".ico") ||
+               path.endsWith(".svg") || path.endsWith(".json"))) {
+      
+      // ตรวจสอบว่า path ไม่ได้ลงท้ายด้วย "/" เพื่อเพิ่ม "/" ก่อน index.html
+      if (!path.endsWith("/")) {
+        path += "/";
+      }
+      path += "index.html";
+    }
+
+    Serial.println("Check2: " + path);
     String contentType = getContentType(path);
-    
+
     if (LittleFS.exists(path)) {
       request->send(LittleFS, path, contentType);
     } else {
-      request->send(404, "text/plain", "File Not Found");
-    } });
+      request->send(404, "text/plain", "File Not Found\n\nPath: " + path);
+    }
+  });
 
-  server.begin();
 }
 
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void dataToinv(String data)
-{
-  if (data == "Grid-tie operation ON")
-  {
-    inv.cmd_inv("grid on");
-  }
-  if (data == "Grid-tie operation OFF")
-  {
-    inv.cmd_inv("grid off");
-  }
-  if (data == "Beeps While Primary Source Interrupt ON")
-  {
-    inv.cmd_inv("beeps on");
-  }
-  if (data == "Beeps While Primary Source Interrupt OFF")
-  {
-    inv.cmd_inv("beeps off");
-  }
-  if (data == "LCD Backlight ON")
-  {
-    inv.cmd_inv("blacklight on");
-  }
-  if (data == "LCD Backlight OFF")
-  {
-    inv.cmd_inv("blacklight off");
-  }
-  if (data == "Return To The Main LCD Page ON")
-  {
-    inv.cmd_inv("returnpage on");
-  }
-  if (data == "Return To The Main LCD Page OFF")
-  {
-    inv.cmd_inv("returnpage off");
-  }
-  if (data == "Power Saving Mode ON")
-  {
-    inv.cmd_inv("saving on");
-  }
-  if (data == "Power Saving Mode OFF")
-  {
-    inv.cmd_inv("saving off");
-  }
-  if (data == "Over Temp Auto Restart ON")
-  {
-    inv.cmd_inv("overtemp on");
-  }
-  if (data == "Over Temp Auto Restart OFF")
-  {
-    inv.cmd_inv("overtemp off");
-  }
-  if (data == "Led Pattern Light ON")
-  {
-    inv.cmd_inv("ledpattern on");
-  }
-  if (data == "Led Pattern Light OFF")
-  {
-    inv.cmd_inv("ledpattern off");
-  }
-  if (data == "Buzzer ON")
-  {
-    inv.cmd_inv("buzzer on");
-  }
-  if (data == "Buzzer OFF")
-  {
-    inv.cmd_inv("buzzer off");
-  }
-  if (data == "Dual Output ON")
-  {
-    inv.cmd_inv("dualoutput on");
-  }
-  if (data == "Dual Output OFF")
-  {
-    inv.cmd_inv("dualoutput off");
-  }
-  if (data == "Overload Auto Restart ON")
-  {
-    inv.cmd_inv("dualoutput on");
-  }
-  if (data == "Overload Auto Restart OFF")
-  {
-    inv.cmd_inv("dualoutput off");
-  }
-  if (data == "Transfer To Bypass Overload ON")
-  {
-    inv.cmd_inv("dualoutput on");
-  }
-  if (data == "Transfer To Bypass Overload OFF")
-  {
-    inv.cmd_inv("dualoutput off");
-  }
-}

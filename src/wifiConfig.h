@@ -14,6 +14,5 @@
 
 void wifi_para();
 void saveConfigCallback();
-void fsformat();
 
 #endif

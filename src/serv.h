@@ -4,6 +4,5 @@
 #include "globals.h"
 
 void setupServer();
-void dataToinv(String data);
 
 #endif

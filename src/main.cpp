@@ -3,6 +3,7 @@
 #include "serv.h"
 #include "ota.h"
 #include "invCommand.h"
+#include "fileSys.h"
 #include "iotHA.h"
 
 unsigned long last = 0;
@@ -22,18 +23,22 @@ void setup()
   MacSetup();
   wifi_para();
   iotHAsetup();
-  otaSetup();
+
+  setupOTAUpload();
   setupServer();
 }
 
+void condition();
 void ledIndicator();
+
 
 void loop()
 {
   // Main function
   mqtt.loop();
-  ArduinoOTA.handle();
+  condition();
   ledIndicator();
+
 
   if ((millis() - lastTime1) > timerDelay1)
   {
@@ -51,6 +56,21 @@ void loop()
     lastTime2 = millis();
     inv.serialSent();
     inv.Response();
+  }
+}
+
+void condition()
+{
+  if (inv.dir)
+  {
+    listAllFilesAndFolders(targetDirectory);
+    inv.dir = false;
+  }
+
+  if (inv.format)
+  {
+    LittleFS.format();
+    inv.format = false;
   }
 }
 

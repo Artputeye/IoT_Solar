@@ -2,10 +2,7 @@
 #define OTA_H
 
 #include "globals.h"
-#include <ESPmDNS.h>
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
 
-void otaSetup();
+void setupOTAUpload();
 
 #endif
