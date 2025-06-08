@@ -15,13 +15,12 @@ unsigned long timerDelay2 = 100;
 void setup()
 {
   Serial.begin(115200);
-  Serial.begin(115200);
-  // รอ Serial พร้อมก่อนเริ่ม
   while (!Serial);
   Serial.println("Booting...");
   Serial2.begin(2400, SERIAL_8N1, RX_pin, TX_pin);
   pinMode(LED, OUTPUT);
   Serial.print("Setup...");
+  
   // setup all function
   delay(300);
   MacSetup();

@@ -82,3 +82,23 @@ p.namehead{
 p.namesub{
   margin: 0px;
 }
+
+/* ในไฟล์ .css ของคุณ */
+.blockicon-link {
+    text-decoration: none; /* ลบขีดเส้นใต้ลิงก์ */
+    color: inherit; /* ให้สีข้อความเป็นสีเริ่มต้นของ parent */
+    display: block; /* ทำให้ลิงก์ครอบคลุมทั้งบล็อก */
+    /* ถ้า blockicon มี margin/padding ที่อยากให้ลิงก์ครอบคลุมด้วย */
+}
+
+/* สไตล์สำหรับ blockicon เดิม */
+.blockicon {
+    /* ใส่สไตล์เดิมของคุณที่นี่ */
+    /* เช่น: border: 1px solid #ccc; padding: 10px; */
+    cursor: pointer; /* เพื่อบอกว่าคลิกได้ */
+}
+
+.blockicon:hover {
+    /* สไตล์เมื่อนำเมาส์ไปชี้ */
+    background-color: #f0f0f0;
+}

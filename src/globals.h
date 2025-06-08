@@ -1,8 +1,6 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-
-
 #define RX_pin 16 // pin receive to inverter
 #define TX_pin 17 // pin transmission to inverter
 #define LED 2     // Led status working
