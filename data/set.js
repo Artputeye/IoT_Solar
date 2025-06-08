@@ -8,9 +8,6 @@
     // sendSettingToServer(settingName, checkbox.checked);
   }
 
-
-
-
 // ส่ง POST ไปยังเซิร์ฟเวอร์
 function toggleToserver(settingName) {
     console.log(`${settingName} has been toggled`);

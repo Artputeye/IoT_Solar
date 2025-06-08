@@ -15,6 +15,10 @@ unsigned long timerDelay2 = 100;
 void setup()
 {
   Serial.begin(115200);
+  Serial.begin(115200);
+  // รอ Serial พร้อมก่อนเริ่ม
+  while (!Serial);
+  Serial.println("Booting...");
   Serial2.begin(2400, SERIAL_8N1, RX_pin, TX_pin);
   pinMode(LED, OUTPUT);
   Serial.print("Setup...");
@@ -31,14 +35,12 @@ void setup()
 void condition();
 void ledIndicator();
 
-
 void loop()
 {
   // Main function
   mqtt.loop();
   condition();
   ledIndicator();
-
 
   if ((millis() - lastTime1) > timerDelay1)
   {
