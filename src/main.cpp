@@ -20,14 +20,14 @@ void setup()
   Serial2.begin(2400, SERIAL_8N1, RX_pin, TX_pin);
   pinMode(LED, OUTPUT);
   Serial.print("Setup...");
-  
+
   // setup all function
   delay(300);
   MacSetup();
   wifi_para();
   iotHAsetup();
-
-  setupOTAUpload();
+  ///////////////////////////////////////////////////
+  
   setupServer();
 }
 

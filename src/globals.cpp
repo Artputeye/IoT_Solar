@@ -18,6 +18,6 @@ char user[10] = "admin"; //OTA Authentication pass
 char pass[10]= "12345"; 
 
 int ledState = LOW;
-int t = 1000; // time led status
+int t = 300; // time led status
 bool test;    // test func tion
 

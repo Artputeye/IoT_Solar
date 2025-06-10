@@ -31,6 +31,10 @@ extern HADevice device;
 extern HAMqtt mqtt;
 extern invCommand inv;
 
+#define FILESYSTEM LittleFS
+
+extern File fsUploadFile;
+
 //define your default values here, if there are different values in config.json, they are overwritten.
 extern char DEVICE_NAME[28]; //= "INVERTER";  //"Anern 4.2kW";  //"ARRTECH INVERTER";
 extern char MQTT_ADDR[16]; //= "192.168.101.100";//"192.168.1.247";

@@ -1,4 +1,5 @@
 #include "globals.h"
+#include "ota.h"
 #include "serv.h"
 const char *PARAM_MESSAGE PROGMEM = "plain";
 void clientCommand();
@@ -7,6 +8,7 @@ void notfoundRoot();
 
 void setupServer()
 {
+  setupOTAUpload();
   clientCommand();
   staticRoot();
   notfoundRoot();
@@ -77,16 +79,19 @@ void staticRoot()
 
 void notfoundRoot()
 {
-server.onNotFound([](AsyncWebServerRequest *request) {
+  server.onNotFound([](AsyncWebServerRequest *request)
+                    {
     String path = request->url();
     Serial.println("Check1: " + path);
 
     // ถ้า path คือ root "/" → ให้เปลี่ยนเป็น index.html
-    if (path == "/") {
+    if (path == "/")
+    {
       path = "/index.html";
     }
     // ถ้าเป็น "/set" หรือ "/ota" (ไม่มีนามสกุล) ให้เพิ่ม ".html"
-    else if (path == "/set" || path == "/ota") {
+    else if (path == "/set" || path == "/ota" || path == "/filelist")
+    {
       path += ".html";
     }
     // ถ้า path ไม่มีนามสกุล และไม่ใช่ "/set" หรือ "/ota"
@@ -94,24 +99,26 @@ server.onNotFound([](AsyncWebServerRequest *request) {
     // ให้ลองเพิ่ม "/index.html" ต่อท้าย (ถือว่าเป็นโฟลเดอร์)
     else if (!(path.endsWith(".html") || path.endsWith(".css") || path.endsWith(".js") ||
                path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".ico") ||
-               path.endsWith(".svg") || path.endsWith(".json"))) {
-      
-      // ตรวจสอบว่า path ไม่ได้ลงท้ายด้วย "/" เพื่อเพิ่ม "/" ก่อน index.html
-      if (!path.endsWith("/")) {
-        path += "/";
+               path.endsWith(".svg") || path.endsWith(".json")))
+    // {
+
+    //   // ตรวจสอบว่า path ไม่ได้ลงท้ายด้วย "/" เพื่อเพิ่ม "/" ก่อน index.html
+    //     if (!path.endsWith("/")) {
+    //       path += "/";
+    //     }
+    //     path += "index.html";
+    //   }
+
+      Serial.println("Check2: " + path);
+      String contentType = getContentType(path);
+
+      if (LittleFS.exists(path))
+      {
+        request->send(LittleFS, path, contentType);
       }
-      path += "index.html";
-    }
-
-    Serial.println("Check2: " + path);
-    String contentType = getContentType(path);
-
-    if (LittleFS.exists(path)) {
-      request->send(LittleFS, path, contentType);
-    } else {
-      request->send(404, "text/plain", "File Not Found\n\nPath: " + path);
-    }
-  });
-
+      else
+      {
+        request->send(404, "text/plain", "File Not Found\n\nPath: " + path);
+      }
+    });
 }
-

@@ -58,6 +58,7 @@ function upload() {
      
     }
   });
-  xhr.open("POST", "/update"); // ใช้ http:// นำหน้า
+  xhr.open("POST", "/"+ updateType); // ใช้ http:// นำหน้า
+  console.log("POST", "/"+ updateType);
   xhr.send(Data);
 }
