@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSerial</title>
+    <link rel="stylesheet" href="info.css">
+    <link rel="stylesheet" href="mainstyle.css">
+    
+</head>
+<body>
+    <header class="navbar">
+        <div class="navbar-brand">
+            <a href="index.html" class="navbar-logo-link">
+                <span class="navbar-text">ARTTECH</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                WebSerial
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="connection-status" id="connectionStatus">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span id="statusText">Disconnected</span>
+                </div>
+                <button class="connect-btn" id="connectBtn">Connect</button>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn active" data-baud="9600">9600</button>
+                <button class="control-btn" data-baud="115200">115200</button>
+                <button class="control-btn" id="clearBtn">Clear</button>
+                <button class="control-btn" id="autoScrollBtn">Auto-scroll</button>
+            </div>
+
+            <div class="terminal" id="terminal">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📡</div>
+                    <div>Click "Connect" to start serial communication</div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <input 
+                    type="text" 
+                    class="message-input" 
+                    id="messageInput" 
+                    placeholder="command here" 
+                    disabled
+                >
+                <button class="send-btn" id="sendBtn" disabled>Send</button>
+            </div>
+        </div>
+        <div class="blockdummy"></div>  
+    </div>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>&copy; 2025 www.arttech.com copyright.</p>
+        </div>
+    </footer>
+    <script src="info.js"></script>
+</body>
+</html>

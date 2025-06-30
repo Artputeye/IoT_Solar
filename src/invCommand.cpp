@@ -150,7 +150,7 @@ void invCommand::cmd_inv(String data)
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////
-  // ON/OFF Grind command to inverte
+  // command to inverte for switch ON/OFF
   if (data == "grid on" || data == "Grid-tie operation ON")
   {
     Serial2.write(grind_on, sizeof(grind_on));
@@ -159,16 +159,6 @@ void invCommand::cmd_inv(String data)
   if (data == "grid off" || data == "Grid-tie operation OFF")
   {
     Serial2.write(grind_off, sizeof(grind_off));
-    sentinv(data);
-  }
-  if (data == "appliance")
-  {
-    Serial2.write(appliance, sizeof(appliance));
-    sentinv(data);
-  }
-  if (data == "ups")
-  {
-    Serial2.write(ups, sizeof(ups));
     sentinv(data);
   }
   if (data == "beeps on" || data == "Beeps While Primary Source Interrupt ON")
@@ -271,6 +261,19 @@ void invCommand::cmd_inv(String data)
     Serial2.write(bypass_off, sizeof(bypass_off));
     sentinv(data);
   }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // command to inverte for dropdown selection
+  if (data == "appliance")
+  {
+    Serial2.write(appliance, sizeof(appliance));
+    sentinv(data);
+  }
+  if (data == "ups")
+  {
+    Serial2.write(ups, sizeof(ups));
+    sentinv(data);
+  }
   if (data == "utility")
   {
     Serial2.write(utility, sizeof(utility));
@@ -336,7 +339,7 @@ void invCommand::cmd_inv(String data)
     Serial.println("Resset setting");
   }
   /////////////////////////////////////////////////////////////////////////////////
-  // read DIR SPIFFS  
+  // read DIR SPIFFS
   if (data == "littleFS")
   {
     dir = true;

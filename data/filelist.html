@@ -2,16 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="stylesheet" href="mainstyle.css">
+  <link rel="stylesheet" href="substyle.css">
   <title>LittleFS File Manager</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-    }
-
-    h1 {
-      color: #333;
-    }
 
     table {
       width: 100%;
@@ -53,6 +47,13 @@
   </style>
 </head>
 <body>
+    <header class="navbar">
+        <div class="navbar-brand">
+            <a href="index.html" class="navbar-logo-link">
+                <span class="navbar-text">ARTTECH</span>
+            </a>
+        </div>
+    </header>
 
   <h1>LittleFS File Manager</h1>
   <table id="fileTable">
@@ -68,6 +69,11 @@
     </tbody>
   </table>
 
+  <footer class="main-footer">
+      <div class="footer-content">
+          <p>&copy; 2025 www.arttech.com copyright.</p>
+      </div>
+  </footer>
   <script>
     function loadFileList() {
       fetch("/list?dir=/")

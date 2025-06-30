@@ -45,6 +45,7 @@ public:
     uint32_t unknow20;       // 20
   } data;
 
+
   /**************************************** public function ********************************/
  
   void serialSent();

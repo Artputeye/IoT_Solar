@@ -5,43 +5,75 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARTTECH</title>
-    <link rel="stylesheet" href="istyle.css">
-    
+    <link rel="stylesheet" href="mainstyle.css">
+    <link rel="stylesheet" href="substyle.css">
 </head>
+
 <body onload="initial()">
-    <div class="blockmain">
-        <div class="blockhead">
-            <div class="blockname">
-                <p class="namehead">HYBRID INVERTER</p>
-            </div>   
-        </div>  
-
-        <div class="blockcontent">
-
-            <!--Monitor-->   
-           <a href="set.html" class="blockicon-link"> <div class="blockicon" id="inverter">
-                <p class="namesub">Inverter</p>
-                <div><img src="https://cdn-icons-png.flaticon.com/128/9138/9138065.png" width="62" height="62"></div>
-                </div>
+    <header class="navbar">
+        <div class="navbar-brand">
+            <a href="index.html" class="navbar-logo-link">
+                <span class="navbar-text">ARTTECH</span>
             </a>
+        </div>
+    </header>
 
-            <!--Setting--> 
-            <a href="ota.html" class="blockicon-link"> <div class="blockicon" id="setting">
-                <p class="namesub">Setting</p>
-                <div><img src="https://cdn-icons-png.flaticon.com/128/9160/9160747.png" width="62" height="62"></div>
-                </div>
-            </a>
-
-            <!--Battery--> 
-            <a href="batt.html" class="blockicon-link"> <div class="blockicon" id="battery">
-                <p class="namesub">Battery</p>
-                <div><img src="https://cdn-icons-gif.flaticon.com/18946/18946038.gif" width="62" height="62"></div>
-                </div>
-            </a>
+    <div class="main-container">
+        
             
-        </div> 
+            <div class="blockhead">
+                <div class="blockname">
+                    <p class="namehead">HYBRID INVERTER</p>
+                </div>  
+            </div>  
+            <div class="blockcontent">           
+                <div class="blockicon-row">
+                    <a href="monitor.html" class="blockicon-link"> <div class="blockicon" id="inverter">
+                        <p class="namesub">Monitor</p>
+                        <div><img src="https://cdn-icons-png.flaticon.com/128/9138/9138065.png" width="45" height="45"></div>
+                        </div>
+                    </a>
 
+                    <a href="set.html" class="blockicon-link"> <div class="blockicon" id="setting">
+                        <p class="namesub">Setting</p>
+                        <div><img src="https://cdn-icons-png.flaticon.com/128/9160/9160747.png" width="45" height="45"></div>
+                        </div>
+                    </a>
+
+                    <a href="batt.html" class="blockicon-link"> <div class="blockicon" id="battery">
+                        <p class="namesub">Battery</p>
+                        <div><img src="https://cdn-icons-png.flaticon.com/128/5550/5550932.png" width="45" height="45"></div>
+                        </div>
+                    </a>
+                </div> 
+
+                <div class="blockicon-row">
+                    <a href="device.html" class="blockicon-link"> <div class="blockicon" id="setting">
+                        <p class="namesub">Device State</p>
+                        <div><img src="https://cdn-icons-png.flaticon.com/128/4789/4789427.png" width="45" height="45"></div>
+                        </div>
+                    </a>
+
+                    <a href="parameter.html" class="blockicon-link"> <div class="blockicon" id="battery">
+                        <p class="namesub">Parameter</p>
+                        <div><img src="https://cdn-icons-png.flaticon.com/128/4341/4341740.png" width="45" height="45"></div>
+                        </div>
+                    </a>
+                    
+                   <a href="info.html" class="blockicon-link"> <div class="blockicon" id="inverter">
+                        <p class="namesub">Info</p>
+                        <div><img src="https://cdn-icons-png.flaticon.com/128/9244/9244455.png" width="45" height="45"></div>
+                        </div>
+                    </a>
+
+                </div> 
+            </div> 
     </div>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>&copy; 2025 www.arttech.com copyright.</p>
+        </div>
+    </footer>
 
     <script src="iscript.js"></script>
 

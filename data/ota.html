@@ -2,29 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ARTTECH OTA </title>
+  <title>Hybrid Inverter Settings</title>
   <link rel="stylesheet" href="ota.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="mainstyle.css">
 </head>
 <body>
-  <h1>ARTTECH OTA</h1>
+    <header class="navbar">
+        <div class="navbar-brand">
+            <a href="index.html" class="navbar-logo-link">
+                <span class="navbar-text">ARTTECH</span>
+            </a>
+        </div>
+    </header>
 
-  <div class="upload-section">
-    <label for="type">OTA Mode</label>
-    <select id="type">
-      <option value="otafirmware">Firmware</option>
-      <option value="otalittlefs">LittleFS</option>
-    </select>
+    <h1>OTA Firmware</h1>
+    <div class="upload-section">
+        <label for="type">OTA Mode</label>
+        <select id="type">
+            <option value="otafirmware">Firmware</option>
+            <option value="otalittlefs">LittleFS</option>
+        </select>
 
-    <!-- ปุ่ม Select File พร้อมไอคอน -->
-    <label for="file" class="custom-file-upload">
-      <i class="fa-solid fa-file-arrow-up"></i> Select File
-    </label>
-    <input type="file" id="file" />
+        <div class="file-input-group"><label for="file" class="custom-file-upload">
+            <i class="fa-solid fa-file-arrow-up"></i> Select File
+            </label>
+            <input type="file" id="file" />
+        </div>
 
-    <button onclick="upload()">Upload</button>
-    <progress id="progress" max="100" value="0"></progress>
-  </div>
+        <span id="file-name" class="file-name">No choose file</span>
+        <button onclick="upload()">Upload</button>
+        <progress id="progress" max="100" value="0"></progress>
+    </div>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>&copy; 2025 www.arttech.com copyright.</p>
+        </div>
+    </footer>
 
   <script src="ota.js"></script>
 </body>

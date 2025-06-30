@@ -44,11 +44,11 @@ function upload() {
       if (xhr.responseText.trim() === "OK") { // ESP32 ของคุณส่ง "OK" กลับมา
         alert("Upload complete! Rebooting...");
       } else {
-        alert("Upload failed! Server response: " + xhr.responseText);
+        alert("Upload Server response: " + xhr.responseText);
       }
     } else {
       console.error("Upload failed (onload):", xhr.status, xhr.responseText);
-      alert("Upload failed! HTTP Status: " + xhr.status + " - " + xhr.responseText);
+      alert("Upload HTTP Status: " + xhr.status + " - " + xhr.responseText);
     }
   };
 

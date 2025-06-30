@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARTTECH</title>
+    <link rel="stylesheet" href="substyle.css">
+    <link rel="stylesheet" href="mainstyle.css">
+</head>
+<body onload="initial()">
+    <header class="navbar">
+        <div class="navbar-brand">
+            <a href="index.html" class="navbar-logo-link">
+                <span class="navbar-text">ARTTECH</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="main-container">       
+        <div class="blockhead">
+            <div class="blockname">
+                <p class="namehead">INVERTER MONITOR</p>
+            </div>  
+        </div>
+        <div class="blockcontent">
+            <div class="display-row">
+                <div class="label">Apparent Power</div>
+                <div id="apparentPower" class="value">--</div>
+            </div>
+
+            <div class="display-row">
+                <div class="label">Active Power</div>
+                <div id="activePower" class="value">--</div>
+            </div>
+
+            <div class="display-row">
+                <div class="label">PV Power</div>
+                <div id="pvPower" class="value">--</div>
+            </div>
+
+            <div class="display-row">
+                <div class="label">Load Percent</div>
+                <div id="loadPercent" class="value">--</div>
+            </div>
+
+            <div class="display-row">
+                <div class="label">PV Current</div>
+                <div id="pvCurrent" class="value">--</div>
+            </div>
+
+            <div class="display-row">
+                <div class="label">PV Voltage</div>
+                <div id="pvVoltage" class="value">--</div>
+            </div>
+
+            <div class="display-row">
+                <div class="label">Grid Voltage</div>
+                <div id="gridVoltage" class="value">--</div>
+            </div>
+
+            <div class="display-row">
+                <div class="label">Output Voltage</div>
+                <div id="outputVoltage" class="value">--</div>
+            </div>
+
+            <div class="display-row">
+                <div class="label">Bus Voltage</div>
+                <div id="busVoltage" class="value">--</div>
+            </div>
+
+            <div class="display-row">
+                <div class="label">Battery Voltage</div>
+                <div id="batteryVoltage" class="value">--</div>
+            </div>
+
+            <div class="display-row">
+                <div class="label">Grid Frequency</div>
+                <div id="gridFrequency" class="value">--</div>
+            </div>
+
+            <div class="display-row">
+                <div class="label">Output Frequency</div>
+                <div id="outputFrequency" class="value">--</div>
+            </div>
+
+            <div class="display-row">
+                <div class="label">Temperature</div>
+                <div id="temperature" class="value">--</div>
+            </div>
+
+            <div class="display-row">
+                <div class="label">Inverter Status</div>
+                <div id="InverterStatus" class="value">--</div>
+            </div>
+        </div>
+        <div class="blockdummy"></div>          
+    </div>
+    
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>&copy; 2025 www.arttech.com copyright.</p>
+        </div>
+    </footer>
+
+    <script src="set.js"></script>
+
+</body>
+</html>

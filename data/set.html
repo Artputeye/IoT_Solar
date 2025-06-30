@@ -1,110 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Hybrid Inverter Settings</title>
-  <link rel="stylesheet" href="set.css">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARTTECH</title>
+    <link rel="stylesheet" href="substyle.css">
+    <link rel="stylesheet" href="mainstyle.css">
 </head>
-<body>
+<body onload="initial()">
+    <header class="navbar">
+        <div class="navbar-brand">
+            <a href="index.html" class="navbar-logo-link">
+                <span class="navbar-text">ARTTECH</span>
+            </a>
+        </div>
+    </header>
 
-  <h1>Hybrid Inverter Settings</h1>
+    <div class="main-container">
+        
+        <div class="blockhead">
+            <div class="blockname">
+                <p class="namehead">INVERTER SETTING</p>
+            </div>  
+        </div>
+                
+        <div class="blockcontent">
+        <!--.//drop down///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
 
-  <div class="toggle-container">
-    <div class="toggle-row">
-      <span>Grid-tie operation</span>
-      <label class="switch">
-        <input type="checkbox" onchange="toggleSetting(this,'Grid-tie operation')">
-        <span class="slider"></span>
-      </label>
+                <div class="card-main">
+                    <div class="card-name"><span>AC Input Range</span></div>
+                    <form class="setting-form" data-setting="ac_input_range">
+                        <div class="form-row">
+                            <select name="plain" id="plain_ac">
+                                <option value="appliance">Appliance</option>
+                                <option value="ups">UPS</option>
+                            </select>
+                            <button class="button-set" type="submit">Set</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-main">
+                    <div class="card-name"><span>Output Source Priority</span></div>
+                    <form class="setting-form" data-setting="output_priority">
+                        <div class="form-row">
+                            <select name="plain" id="plain_priority">
+                                <option value="utility">Utility</option>
+                                <option value="solar">Solar</option>
+                                <option value="sbu">SBU</option>
+                            </select>
+                            <button class="button-set" type="submit">Set</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-main">
+                    <div class="card-name"><span>Output Voltage</span></div>
+                    <form class="setting-form" data-setting="output_voltage">
+                        <div class="form-row">
+                            <select name="plain" id="plain_voltage">
+                                <option value="output_220">220VAC</option>
+                                <option value="output_230">230VAC</option>
+                                <option value="output_240">240VAC</option>
+                            </select>
+                            <button class="button-set" type="submit">Set</button>
+                        </div>
+                    </form>
+                </div>
+
+
+<!--.//toggle switch////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+ 
+                <div class="toggle-row">
+                    <span class="toggle-text">Grid-tie Operation</span>
+                    <label class="switch">
+                    <input type="checkbox" onchange="toggleSetting(this,'Grid-tie operation')">
+                    <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <span class="toggle-text">Beeps While Primary Source Interrupt</span>
+                    <label class="switch">
+                    <input type="checkbox" onchange="toggleSetting(this,'Beeps While Primary Source Interrupt')">
+                    <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <span class="toggle-text">LCD Backlight</span>
+                    <label class="switch">
+                    <input type="checkbox" onchange="toggleSetting(this,'LCD Backlight')">
+                    <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <span class="toggle-text">Return To The Main LCD Page</span>
+                    <label class="switch">
+                    <input type="checkbox" onchange="toggleSetting(this,'Return To The Main LCD Page')">
+                    <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <span class="toggle-text">Power Saving Mode</span>
+                    <label class="switch">
+                    <input type="checkbox" onchange="toggleSetting(this,'Power Saving Mode')">
+                    <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <span class="toggle-text">Over Temp Auto Restart</span>
+                    <label class="switch">
+                    <input type="checkbox" onchange="toggleSetting(this,'Over Temp Auto Restart')">
+                    <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <span class="toggle-text">Led Pattern Light</span>
+                    <label class="switch">
+                    <input type="checkbox" onchange="toggleSetting(this,'Led Pattern Light')">
+                    <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <span class="toggle-text">Buzzer</span>
+                    <label class="switch">
+                    <input type="checkbox" onchange="toggleSetting(this,'Buzzer')">
+                    <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <span class="toggle-text">Dual Output</span>
+                    <label class="switch">
+                    <input type="checkbox" onchange="toggleSetting(this,'Dual Output')">
+                    <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <span class="toggle-text">Overload Auto Restart</span>
+                    <label class="switch">
+                    <input type="checkbox" onchange="toggleSetting(this,'Overload Auto Restart')">
+                    <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <span class="toggle-text">Transfer To Bypass Overload</span>
+                    <label class="switch">
+                    <input type="checkbox" onchange="toggleSetting(this,'Transfer To Bypass Overload')">
+                    <span class="slider"></span>
+                    </label>
+                </div>
+        </div>
+        <div class="blockdummy"></div>  
     </div>
 
-    <div class="toggle-row">
-      <span>Beeps While Primary Source Interrupt</span>
-      <label class="switch">
-        <input type="checkbox" onchange="toggleSetting(this,'Beeps While Primary Source Interrupt')">
-        <span class="slider"></span>
-      </label>
-    </div>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>&copy; 2025 www.arttech.com copyright.</p>
+        </div>
+    </footer>
+    <script src="set.js"></script>
 
-    <div class="toggle-row">
-      <span>LCD Backlight</span>
-      <label class="switch">
-        <input type="checkbox" onchange="toggleSetting(this,'LCD Backlight')">
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <div class="toggle-row">
-      <span>Return To The Main LCD Page</span>
-      <label class="switch">
-        <input type="checkbox" onchange="toggleSetting(this,'Return To The Main LCD Page')">
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <div class="toggle-row">
-      <span>Power Saving Mode</span>
-      <label class="switch">
-        <input type="checkbox" onchange="toggleSetting(this,'Power Saving Mode')">
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <div class="toggle-row">
-      <span>Over Temp Auto Restart</span>
-      <label class="switch">
-        <input type="checkbox" onchange="toggleSetting(this,'Over Temp Auto Restart')">
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <div class="toggle-row">
-      <span>Led Pattern Light</span>
-      <label class="switch">
-        <input type="checkbox" onchange="toggleSetting(this,'Led Pattern Light')">
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <div class="toggle-row">
-      <span>Buzzer</span>
-      <label class="switch">
-        <input type="checkbox" onchange="toggleSetting(this,'Buzzer')">
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <div class="toggle-row">
-      <span>Dual Output</span>
-      <label class="switch">
-        <input type="checkbox" onchange="toggleSetting(this,'Dual Output')">
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <div class="toggle-row">
-      <span>Overload Auto Restart</span>
-      <label class="switch">
-        <input type="checkbox" onchange="toggleSetting(this,'Overload Auto Restart')">
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <div class="toggle-row">
-      <span>Transfer To Bypass Overload</span>
-      <label class="switch">
-        <input type="checkbox" onchange="toggleSetting(this,'Transfer To Bypass Overload')">
-        <span class="slider"></span>
-      </label>
-    </div>
-  </div>
-
-  <div style="text-align: center; margin-top: 30px;">
-    <a href="index.html">
-        <button class="home-button">🔙 Return Home</button>
-    </a>
-  </div>
-
-  <script src="set.js"></script>
 </body>
 </html>
