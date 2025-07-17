@@ -1,4 +1,4 @@
-#include "globals.h"
+#include "fileSys.h"
 const char *targetDirectory = "/";
 
 void listAllFilesAndFolders(const char *dirname)

@@ -3,5 +3,3 @@ pio run --target buildfs
 pio run --target upload 
 python -m esptool --port COM4 erase_flash
 
-formatFS
-littleFS

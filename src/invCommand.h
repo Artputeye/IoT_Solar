@@ -1,6 +1,5 @@
 #ifndef INV_COMMAND_H
 #define INV_COMMAND_H
-
 #include <Arduino.h>
 #include <string.h>
 

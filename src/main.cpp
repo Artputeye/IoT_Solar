@@ -1,10 +1,4 @@
 #include "globals.h"
-#include "wifiConfig.h"
-#include "serv.h"
-#include "ota.h"
-#include "invCommand.h"
-#include "fileSys.h"
-#include "iotHA.h"
 
 unsigned long last = 0;
 unsigned long lastTime1 = 0;
@@ -15,20 +9,23 @@ unsigned long timerDelay2 = 100;
 void setup()
 {
   Serial.begin(115200);
-  while (!Serial);
+  while (!Serial)
+    ;
   Serial.println("Booting...");
   Serial2.begin(2400, SERIAL_8N1, RX_pin, TX_pin);
   pinMode(LED, OUTPUT);
-  Serial.print("Setup...");
+  Serial.println("Setup...");
 
   // setup all function
   delay(300);
   MacSetup();
-  wifi_para();
+  wifi_config();
   iotHAsetup();
-  ///////////////////////////////////////////////////
+  MDNS.begin("arttech");
+  Serial.println("mDNS responder started");
   
   setupServer();
+  server.begin();
 }
 
 void condition();
@@ -39,6 +36,7 @@ void loop()
   // Main function
   mqtt.loop();
   condition();
+
   ledIndicator();
 
   if ((millis() - lastTime1) > timerDelay1)

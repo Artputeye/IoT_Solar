@@ -2,6 +2,9 @@
 
 // object define
 //WebServer _server(8080);
+// ยกเลิก define เพื่อคืนค่าเดิมให้ ESPAsyncWebServer ใช้ enum ได้
+#define HTTP_GET    _HTTP_GET
+#define HTTP_POST   _HTTP_POST
 AsyncWebServer server(80);
 WiFiClient client;
 HADevice device;             // home assistant
@@ -9,6 +12,7 @@ HAMqtt mqtt(client, device); // home assistant
 invCommand inv;              // command inverter
 
 char DEVICE_NAME[28] = "Anern 4.2kW";    //= "INVERTER";  //"Anern 4.2kW";  //"ARRTECH INVERTER";
+char PASSWORD[25] = 12345678;
 char MQTT_ADDR[16] = "192.168.1.247"; //= "192.168.101.100";//"192.168.1.247";
 char MQTT_USERNAME[28] = "inverter"; //= "mqtt-user";//"inverter";  // replace with your credentials
 char MQTT_PASSWORD[28] = "1234";      //= "1234";

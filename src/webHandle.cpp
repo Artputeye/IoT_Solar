@@ -1,6 +1,4 @@
-#include "globals.h"
-#include "ota.h"
-#include "serv.h"
+#include "webHandle.h"
 const char *PARAM_MESSAGE PROGMEM = "plain";
 void clientCommand();
 void staticRoot();
@@ -12,7 +10,6 @@ void setupServer()
   clientCommand();
   staticRoot();
   notfoundRoot();
-  server.begin();
 }
 
 String getContentType(String filename)
@@ -54,13 +51,11 @@ void clientCommand()
 
 void staticRoot()
 {
-  // 1. จัดการ Root URL ("/") ให้ส่ง index.html
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
             {
     Serial.println("Request to '/': Serving /index.html");
     request->send(LittleFS, "/index.html", "text/html"); });
 
-  // 2. จัดการ Path พิเศษที่ต้องการให้ลงท้ายด้วย .html
   server.on("/set", HTTP_GET, [](AsyncWebServerRequest *request)
             {
     Serial.println("Request to '/set': Serving /set.html");
@@ -71,10 +66,8 @@ void staticRoot()
     Serial.println("Request to '/ota': Serving /ota.html");
     request->send(LittleFS, "/ota.html", "text/html"); });
 
-  // 3. ใช้ server.serveStatic() สำหรับไฟล์ Static ทั่วไป
-  // This will handle all requests for files (e.g., /style.css, /script.js, /images/logo.png)
-  // ที่อยู่ใน LittleFS. It also handles the default index.html if a folder is accessed.
-  server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html"); // สำคัญ: กำหนดให้ /index.html เป็นค่าเริ่มต้นเมื่อเข้าถึง "/" หรือ /folder/
+  server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
+  
 }
 
 void notfoundRoot()
@@ -84,30 +77,27 @@ void notfoundRoot()
     String path = request->url();
     Serial.println("Check1: " + path);
 
-    // ถ้า path คือ root "/" → ให้เปลี่ยนเป็น index.html
     if (path == "/")
     {
       path = "/index.html";
     }
-    // ถ้าเป็น "/set" หรือ "/ota" (ไม่มีนามสกุล) ให้เพิ่ม ".html"
+
     else if (path == "/set" || path == "/ota" || path == "/filelist")
     {
       path += ".html";
     }
-    // ถ้า path ไม่มีนามสกุล และไม่ใช่ "/set" หรือ "/ota"
-    // เช่น "/myfolder" หรือ "/anotherpath"
-    // ให้ลองเพิ่ม "/index.html" ต่อท้าย (ถือว่าเป็นโฟลเดอร์)
+
     else if (!(path.endsWith(".html") || path.endsWith(".css") || path.endsWith(".js") ||
                path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".ico") ||
                path.endsWith(".svg") || path.endsWith(".json")))
-    // {
-
-    //   // ตรวจสอบว่า path ไม่ได้ลงท้ายด้วย "/" เพื่อเพิ่ม "/" ก่อน index.html
-    //     if (!path.endsWith("/")) {
-    //       path += "/";
-    //     }
-    //     path += "index.html";
-    //   }
+    
+               {
+      // ตรวจสอบว่า path ไม่ได้ลงท้ายด้วย "/" เพื่อเพิ่ม "/" ก่อน index.html
+        if (!path.endsWith("/")) {
+          path += "/";
+        }
+        path += "index.html";
+      }
 
       Serial.println("Check2: " + path);
       String contentType = getContentType(path);
@@ -119,6 +109,5 @@ void notfoundRoot()
       else
       {
         request->send(404, "text/plain", "File Not Found\n\nPath: " + path);
-      }
-    });
+      } });
 }

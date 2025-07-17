@@ -16,7 +16,7 @@
   position: absolute;
   top: 85px;
   width: 85%;
-  max-width: 500px;
+  max-width: 450px;
   justify-content: center; 
   align-items: flex-start; 
   flex-grow: 1; 
@@ -35,7 +35,7 @@
 }
 
 .blockdummy{
-  height: 17px;
+  height: 37px;
 }
 
 .blockcontent{

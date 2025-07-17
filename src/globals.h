@@ -1,38 +1,48 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#define RX_pin 16 // pin receive to inverter
-#define TX_pin 17 // pin transmission to inverter
-#define LED 2     // Led status working
-
+/////////////////////////////////////////////////////////////////////////
+//Libraries
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <AsyncTCP.h>
 #include <WebServer.h>
 #include <ESPAsyncWebServer.h>
 #include <Update.h>
-//#include <ElegantOTA.h>
-
-#include <ArduinoJson.h>  //https://github.com/bblanchon/ArduinoJson
+#include <ESPmDNS.h>
+#include <WiFiManager.h>  
+#include <ArduinoJson.h>  
 #include <ArduinoHA.h>
-
 #include <FS.h>   
 #ifdef ESP32
 #include <LittleFS.h>
 #endif
 
+/////////////////////////////////////////////////////////////////////////
+//Sub Prongrams
+#include "wifiConfig.h"
+#include "webHandle.h"
+#include "ota.h"
 #include "invCommand.h"
+#include "fileSys.h"
+#include "iotHA.h"
+
+/////////////////////////////////////////////////////////////////////////
+
+#define RX_pin 16 // pin receive to inverter
+#define TX_pin 17 // pin transmission to inverter
+#define LED 2     // Led status working
 
 // declare global object out source cpp
-//extern WebServer _server;
+//extern class object;
 extern AsyncWebServer server;
 extern WiFiClient client;
+extern WiFiManager wm;
 extern HADevice device;
 extern HAMqtt mqtt;
 extern invCommand inv;
 
 #define FILESYSTEM LittleFS
-
 extern File fsUploadFile;
 
 //define your default values here, if there are different values in config.json, they are overwritten.
@@ -53,6 +63,5 @@ extern bool shouldSaveConfig;
 extern int t ;
 extern bool test;
 extern int ledState;
-
 
 #endif

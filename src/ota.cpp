@@ -1,5 +1,4 @@
 #include "ota.h"
-#include "globals.h"
 
 File fsUploadFile;
 

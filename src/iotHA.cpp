@@ -1,4 +1,3 @@
-#include "globals.h"
 #include "iotHA.h"
 
 uint8_t Mac[6];
