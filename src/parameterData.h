@@ -2,6 +2,7 @@
 #define FILE_SYS_H
 #include "globals.h"
 
+void fileManage();
 void listAllFilesAndFolders(const char *dirname);
  
 #endif

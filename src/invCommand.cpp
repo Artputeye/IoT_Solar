@@ -140,9 +140,18 @@ void invCommand::cmd_inv(String data)
   // 05 06 13 ab 00 0f bd 2e                           //...«..½.
 
   // parameter setting
-  if (data == "QPIGS")
+  if (data == "QPIGS") //Device general status parameters inquiry
   {
     Serial2.write(QPIGS, sizeof(QPIGS));
+    if (print)
+    {
+      sentinv(data);
+    }
+  }
+
+    if (data == "QPIRI") //Device Rating Information inquiry
+  {
+    Serial2.write(QPIRI, sizeof(QPIRI));
     if (print)
     {
       sentinv(data);
@@ -305,6 +314,14 @@ void invCommand::cmd_inv(String data)
     sentinv(data);
   }
 
+  ////////////////////////////////////////////////////////////////////////////////
+   
+  if (data == "espreset")
+  {
+    Serial.println("ESP Reset");
+    delay(5000);
+    ESP.restart();
+  }
   ////////////////////////////////////////////////////////////////////////////////
   // Test mode
   if (data == "test on")

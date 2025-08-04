@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="substyle.css">
     <link rel="stylesheet" href="mainstyle.css">
 </head>
-<body onload="initial()">
+<body>
     <header class="navbar">
         <div class="navbar-brand">
             <a href="index.html" class="navbar-logo-link">
@@ -32,9 +32,9 @@
                     <div class="card-name"><span>AC Input Range</span></div>
                     <form class="setting-form" data-setting="ac_input_range">
                         <div class="form-row">
-                            <select name="plain" id="plain_ac">
+                            <select name="plain" id="AC Input Range">
                                 <option value="appliance">Appliance</option>
-                                <option value="ups">UPS</option>
+                                <option value="ups" >UPS</option>
                             </select>
                             <button class="button-set" type="submit">Set</button>
                         </div>
@@ -45,7 +45,7 @@
                     <div class="card-name"><span>Output Source Priority</span></div>
                     <form class="setting-form" data-setting="output_priority">
                         <div class="form-row">
-                            <select name="plain" id="plain_priority">
+                            <select name="plain" id="Output Source Priority">
                                 <option value="utility">Utility</option>
                                 <option value="solar">Solar</option>
                                 <option value="sbu">SBU</option>
@@ -59,10 +59,10 @@
                     <div class="card-name"><span>Output Voltage</span></div>
                     <form class="setting-form" data-setting="output_voltage">
                         <div class="form-row">
-                            <select name="plain" id="plain_voltage">
-                                <option value="output_220">220VAC</option>
-                                <option value="output_230">230VAC</option>
-                                <option value="output_240">240VAC</option>
+                            <select name="plain" id="Output Voltage">
+                                <option value="220VAC">220VAC</option>
+                                <option value="230VAC">230VAC</option>
+                                <option value="240VAC">240VAC</option>
                             </select>
                             <button class="button-set" type="submit">Set</button>
                         </div>
@@ -73,9 +73,9 @@
 <!--.//toggle switch////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
  
                 <div class="toggle-row">
-                    <span class="toggle-text">Grid-tie Operation</span>
+                    <span class="toggle-text">Grid Tie Operation</span>
                     <label class="switch">
-                    <input type="checkbox" onchange="toggleSetting(this,'Grid-tie operation')">
+                    <input type="checkbox" id="Grid Tie Operation" onchange="toggleSetting(this,'Grid Tie Operation')">
                     <span class="slider"></span>
                     </label>
                 </div>
@@ -83,7 +83,7 @@
                 <div class="toggle-row">
                     <span class="toggle-text">Beeps While Primary Source Interrupt</span>
                     <label class="switch">
-                    <input type="checkbox" onchange="toggleSetting(this,'Beeps While Primary Source Interrupt')">
+                    <input type="checkbox" id="Beeps While Primary Source Interrupt" onchange="toggleSetting(this,'Beeps While Primary Source Interrupt')">
                     <span class="slider"></span>
                     </label>
                 </div>
@@ -91,7 +91,7 @@
                 <div class="toggle-row">
                     <span class="toggle-text">LCD Backlight</span>
                     <label class="switch">
-                    <input type="checkbox" onchange="toggleSetting(this,'LCD Backlight')">
+                    <input type="checkbox" id="LCD Backlight" onchange="toggleSetting(this,'LCD Backlight')">
                     <span class="slider"></span>
                     </label>
                 </div>
@@ -99,7 +99,7 @@
                 <div class="toggle-row">
                     <span class="toggle-text">Return To The Main LCD Page</span>
                     <label class="switch">
-                    <input type="checkbox" onchange="toggleSetting(this,'Return To The Main LCD Page')">
+                    <input type="checkbox" id="Return To The Main LCD Page" onchange="toggleSetting(this,'Return To The Main LCD Page')">
                     <span class="slider"></span>
                     </label>
                 </div>
@@ -107,7 +107,7 @@
                 <div class="toggle-row">
                     <span class="toggle-text">Power Saving Mode</span>
                     <label class="switch">
-                    <input type="checkbox" onchange="toggleSetting(this,'Power Saving Mode')">
+                    <input type="checkbox" id="Power Saving Mode" onchange="toggleSetting(this,'Power Saving Mode')">
                     <span class="slider"></span>
                     </label>
                 </div>
@@ -115,7 +115,7 @@
                 <div class="toggle-row">
                     <span class="toggle-text">Over Temp Auto Restart</span>
                     <label class="switch">
-                    <input type="checkbox" onchange="toggleSetting(this,'Over Temp Auto Restart')">
+                    <input type="checkbox" id="Over Temp Auto Restart" onchange="toggleSetting(this,'Over Temp Auto Restart')">
                     <span class="slider"></span>
                     </label>
                 </div>
@@ -123,7 +123,7 @@
                 <div class="toggle-row">
                     <span class="toggle-text">Led Pattern Light</span>
                     <label class="switch">
-                    <input type="checkbox" onchange="toggleSetting(this,'Led Pattern Light')">
+                    <input type="checkbox" id="Led Pattern Light" onchange="toggleSetting(this,'Led Pattern Light')">
                     <span class="slider"></span>
                     </label>
                 </div>
@@ -131,7 +131,7 @@
                 <div class="toggle-row">
                     <span class="toggle-text">Buzzer</span>
                     <label class="switch">
-                    <input type="checkbox" onchange="toggleSetting(this,'Buzzer')">
+                    <input type="checkbox" id="Buzzer" onchange="toggleSetting(this,'Buzzer')">
                     <span class="slider"></span>
                     </label>
                 </div>
@@ -139,7 +139,7 @@
                 <div class="toggle-row">
                     <span class="toggle-text">Dual Output</span>
                     <label class="switch">
-                    <input type="checkbox" onchange="toggleSetting(this,'Dual Output')">
+                    <input type="checkbox" id="Dual Output" onchange="toggleSetting(this,'Dual Output')">
                     <span class="slider"></span>
                     </label>
                 </div>
@@ -147,7 +147,7 @@
                 <div class="toggle-row">
                     <span class="toggle-text">Overload Auto Restart</span>
                     <label class="switch">
-                    <input type="checkbox" onchange="toggleSetting(this,'Overload Auto Restart')">
+                    <input type="checkbox" id="Overload Auto Restart" onchange="toggleSetting(this,'Overload Auto Restart')">
                     <span class="slider"></span>
                     </label>
                 </div>
@@ -155,7 +155,7 @@
                 <div class="toggle-row">
                     <span class="toggle-text">Transfer To Bypass Overload</span>
                     <label class="switch">
-                    <input type="checkbox" onchange="toggleSetting(this,'Transfer To Bypass Overload')">
+                    <input type="checkbox" id="Transfer To Bypass Overload" onchange="toggleSetting(this,'Transfer To Bypass Overload')">
                     <span class="slider"></span>
                     </label>
                 </div>

@@ -1,6 +1,5 @@
 document.getElementById("file").addEventListener("change", function () {
   const fileName = this.files.length > 0 ? this.files[0].name : "No file chosen";
-  
   const fileNameDisplay = document.getElementById("file-name");
   if (fileNameDisplay) {
     fileNameDisplay.textContent = fileName;
@@ -43,22 +42,26 @@ function upload() {
       // ตรวจสอบข้อความตอบกลับจาก ESP32
       if (xhr.responseText.trim() === "OK") { // ESP32 ของคุณส่ง "OK" กลับมา
         alert("Upload complete! Rebooting...");
+        progressElement.value = 0; // รีเซ็ตแถบ progress
       } else {
         alert("Upload Server response: " + xhr.responseText);
+        progressElement.value = 0; // รีเซ็ตแถบ progress
       }
     } else {
       console.error("Upload failed (onload):", xhr.status, xhr.responseText);
       alert("Upload HTTP Status: " + xhr.status + " - " + xhr.responseText);
+      progressElement.value = 0; // รีเซ็ตแถบ progress
     }
   };
 
   xhr.addEventListener("readystatechange", function() {
     if (this.readyState === 4) { // readyState 4 คือ REQUEST_FINISHED (คำขอเสร็จสมบูรณ์)
       console.log("Server response (readystatechange):", this.responseText);
-     
+      progressElement.value = 0; // รีเซ็ตแถบ progress
     }
   });
   xhr.open("POST", "/"+ updateType); // ใช้ http:// นำหน้า
   console.log("POST", "/"+ updateType);
   xhr.send(Data);
+  progressElement.value = 0; // รีเซ็ตแถบ progress
 }

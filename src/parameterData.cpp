@@ -1,15 +1,23 @@
-#include "fileSys.h"
+#include "parameterData.h"
 const char *targetDirectory = "/";
+
+void fileManage()
+{
+  if (inv.dir)
+  {
+    listAllFilesAndFolders(targetDirectory);
+    inv.dir = false;
+  }
+
+  if (inv.format)
+  {
+    LittleFS.format();
+    inv.format = false;
+  }
+}
 
 void listAllFilesAndFolders(const char *dirname)
 {
-    if (!LittleFS.begin(true))
-    { // 'true' คือ format if not exists or corrupted
-        Serial.println("LittleFS Mount Failed");
-        return;
-    }
-    Serial.println("LittleFS Mounted Successfully!");
-
     // แสดงรายชื่อไฟล์ทั้งหมดใน LittleFS
     Serial.println("\nListing files in LittleFS:");
     Serial.printf("Listing directory: %s\n", dirname);
@@ -34,7 +42,7 @@ void listAllFilesAndFolders(const char *dirname)
             Serial.print("  DIR : ");
             Serial.println(file.name());
             // ถ้าต้องการดูไฟล์ใน sub-directory ด้วย ให้เรียกซ้ำ:
-            // listAllFilesAndFolders(file.name()); // ระวัง recursive depth ถ้ามี subfolder เยอะ
+            listAllFilesAndFolders(file.name()); // ระวัง recursive depth ถ้ามี subfolder เยอะ
         }
         else
         {
