@@ -11,5 +11,7 @@ void getSetting();
 void saveSetting();
 void getbatSetting();
 void savebatSetting();
+void getWifi();
+void saveWifi() ;
 
 #endif
