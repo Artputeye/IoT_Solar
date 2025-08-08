@@ -6,8 +6,10 @@ void webHandle();
 String getContentType(String filename);
 void staticRoot();
 void notfoundRoot();
-void parametersetting();
-void getstatus();
-void saveData();
+void parameterSetting();
+void getSetting();
+void saveSetting();
+void getbatSetting();
+void savebatSetting();
 
 #endif

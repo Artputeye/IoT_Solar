@@ -2,7 +2,7 @@
 
 unsigned long lastTime1 = 0;
 unsigned long lastTime2 = 0;
-unsigned long timerDelay1 = 1000;
+unsigned long timerDelay1 = 3000;
 unsigned long timerDelay2 = 100;
 
 WiFiClient client;           // home assistant

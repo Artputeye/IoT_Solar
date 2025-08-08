@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Toggle Voltage</title>
+  <style>
+    /* Toggle switch style */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+
+    .switch input {
+      display: none;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #4CAF50;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    .voltage-label {
+      margin-left: 15px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Toggle Voltage</h2>
+
+  <label class="switch">
+    <input type="checkbox" id="voltageToggle">
+    <span class="slider"></span>
+  </label>
+
+  <span id="voltageValue" class="voltage-label">24V</span>
+
+  <script>
+    const toggle = document.getElementById("voltageToggle");
+    const label = document.getElementById("voltageValue");
+
+    toggle.addEventListener("change", function () {
+      if (this.checked) {
+        label.textContent = "48V";
+      } else {
+        label.textContent = "24V";
+      }
+    });
+  </script>
+
+</body>
+</html>

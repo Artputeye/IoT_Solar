@@ -1,162 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARTTECH</title>
-    <link rel="stylesheet" href="substyle.css">
-    <link rel="stylesheet" href="mainstyle.css">
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARTTECH</title>
+  <link rel="stylesheet" href="substyle.css" />
+  <link rel="stylesheet" href="mainstyle.css" />
 </head>
-<body onload="initial()">
-    <header class="navbar">
-        <div class="navbar-brand">
-            <a href="index.html" class="navbar-logo-link">
-                <span class="navbar-text">ARTTECH</span>
-            </a>
-        </div>
-    </header>
 
-    <div class="main-container">
-        <div class="blockhead">
-            <div class="blockname">
-                <p class="namehead">BATTERY SETTING</p>
-            </div>  
-        </div>
+<header class="navbar">
+  <div class="navbar-brand">
+    <a href="index.html" class="navbar-logo-link">
+      <span class="navbar-text">ARTTECH</span>
+    </a>
+  </div>
+</header>
 
-        <div class="blockcontent">
-            <!--.//toggle switch////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.--> 
-            <div class="toggle-row">
-                <span class="toggle-text">Battery Voltage 48V</span>
-                <label class="switch">
-                <input type="checkbox" onchange="toggleSetting(this,'Grid-tie operation')">
-                <span class="slider"></span>
-                </label>
-            </div>
-            
-            <!--.//drop down///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
-            <div class="card-main">
-                <div class="card-name"><span>Maximum Charging Current</span></div>
-                <form class="setting-dropdown" data-setting="ac_input_range">
-                    <div class="form-row">
-                        <select name="plain" id="plain_ac">
-                            <option value="charging_10">10A</option>
-                            <option value="charging_20">20A</option>
-                            <option value="charging_30">30A</option>
-                            <option value="charging_40">40A</option>
-                            <option value="charging_50">50A</option>
-                            <option value="charging_60">60A</option>
-                            <option value="charging_70">70A</option>
-                            <option value="charging_80">80A</option>
-                            <option value="charging_90">90A</option>
-                            <option value="charging_100">100A</option>
-                            <option value="charging_110">110A</option>
-                            <option value="charging_120">120A</option>
-                        </select>
-                        <button class="button-set" type="submit">Set</button>
-                    </div>
-                </form>
-            </div>
+<div class="main-container">
+  <div class="blockhead">
+    <div class="blockname">
+      <p class="namehead">BATTERY SETTING</p>
+    </div>
+  </div>
 
-            <div class="card-main">
-                <div class="card-name"><span>Battery Type</span></div>
-                <form class="setting-dropdown" data-setting="battery_type">
-                    <div class="form-row">
-                        <select name="plain" id="plain_batt_type">
-                            <option value="battype_user">User Defined</option>
-                            <option value="battype_agm">AGM</option>  
-                            <option value="battype_lib">Lithium</option>
-                        </select>
-                        <button class="button-set" type="submit">Set</button>
-                    </div>
-                </form>
-            </div>
+  <div class="blockcontent">
+    <!--.//toggle switch////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+    <div class="toggle-row">
+      <span class="toggle-batt">Battery Voltage
+        <span id="battType" class="toggle-batt">24V</span>
+      </span>
 
-            <div class="card-main">
-                <div class="card-name"><span>Voltage Point Back to Utility</span></div>
-                <form class="setting-dropdown" data-setting="voltage_utility">
-                    <div class="form-row">
-                        <select name="plain" id="plain_utility">
-                            <option value="voltage_utility1">21.0/42V</option>
-                            <option value="voltage_utility2">21.5/43V</option>
-                            <option value="voltage_utility3">22.0/44V</option>
-                            <option value="voltage_utility4">22.5/45V</option>
-                            <option value="voltage_utility5">23.0/46V</option>
-                            <option value="voltage_utility6">23.5/47V</option>
-                            <option value="voltage_utility7">24.0/48V</option>
-                            <option value="voltage_utility8">24.5/49V</option>
-                            <option value="voltage_utility9">25.0/50V</option>
-                            <option value="voltage_utility10">25.5/51V</option>
-                        </select>
-                        <button class="button-set" type="submit">Set</button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="card-main">
-                <div class="card-name"><span>Voltage Point Back to Battery</span></div>
-                <form class="setting-dropdown" data-setting="voltage_batt">
-                    <div class="form-row">
-                        <select name="plain" id="plain_batt">
-                            <option value="voltage_batt1">Full</option>
-                            <option value="voltage_batt2">24.0/48V</option>
-                            <option value="voltage_batt3">24.5/49V</option>
-                            <option value="voltage_batt4">25.0/50V</option>
-                            <option value="voltage_batt5">25.5/51V</option>
-                            <option value="voltage_batt6">26.0/52V</option>
-                            <option value="voltage_batt7">26.5/53V</option>
-                            <option value="voltage_batt8">27.0/54V</option>
-                            <option value="voltage_batt9">27.5/55V</option>
-                            <option value="voltage_batt10">28.0/56V</option>
-                            <option value="voltage_batt11">28.5/57V</option>
-                            <option value="voltage_batt12">29.0/58V</option>
-                        </select>
-                        <button class="button-set" type="submit">Set</button>
-                    </div>
-                </form>
-            </div>  
-
-<!--.//input field////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
-
-            <div class="card-main">
-                <div class="card-name"><span>Bulk Charging Voltage 25.0 - 31.5V</span></div>
-                <form class="setting-input" data-setting="voltage_charge">
-                    <div class="form-row">
-                        <input type="number" id="voltage_charge" name="charge" min="25.0" max="31.5" step="0.1" required>
-                        <button class="button-set" type="submit">Set</button>
-                    </div>
-                </form>
-            </div>  
-            
-            <div class="card-main">
-                <div class="card-name"><span>Floating Charging Voltage 25.0 - 31.5V</span></div>
-                <form class="setting-input" data-setting="voltage_floating">
-                    <div class="form-row">
-                        <input type="number" id="voltage_floating" name="floating" min="25.0" max="31.5" step="0.1" required>
-                        <button class="button-set" type="submit">Set</button>
-                    </div>
-                </form>
-            </div>  
-
-            <div class="card-main">
-                <div class="card-name"><span>Low DC Cutt off 20.0 - 31.5V</span></div>
-                <form class="setting-input" data-setting="voltage_cutt">
-                    <div class="form-row">
-                        <input type="number" id="voltage_cutt" name="cutt" min="20.0" max="31.5" step="0.1" required>
-                        <button class="button-set" type="submit">Set</button>
-                    </div>
-                </form>
-            </div>  
-        </div>
-        <div class="blockdummy"></div>  
+      <label class="switch">
+        <input id="battypeToggle" type="checkbox" onchange="toggleSelect(this)" />
+        <span class="slider"></span>
+      </label>
     </div>
 
+    <!--.//drop down///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+    <div class="card-main">
+      <div class="card-name"><span>Maximum Charging Current</span></div>
+      <form class="setting-dropdown" data-setting="ac_input_range">
+        <div class="form-row">
+          <select name="plain" id="plain_ac">
+            <option value="charging_10">10A</option>
+            <option value="charging_20">20A</option>
+            <option value="charging_30">30A</option>
+            <option value="charging_40">40A</option>
+            <option value="charging_50">50A</option>
+            <option value="charging_60">60A</option>
+            <option value="charging_70">70A</option>
+            <option value="charging_80">80A</option>
+            <option value="charging_90">90A</option>
+            <option value="charging_100">100A</option>
+            <option value="charging_110">110A</option>
+            <option value="charging_120">120A</option>
+          </select>
+          <button class="button-set" type="button" onclick="collectAndSendSettings()">Set</button>
+
+        </div>
+      </form>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name"><span>Battery Type</span></div>
+      <form class="setting-dropdown" data-setting="battery_type">
+        <div class="form-row">
+          <select name="plain" id="plain_batt_type">
+            <option value="battype_user">User Defined</option>
+            <option value="battype_agm">AGM</option>
+            <option value="battype_lib">Lithium</option>
+          </select>
+          <button class="button-set" type="button" onclick="collectAndSendSettings()">Set</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name">
+        <span>Voltage Point Back to Utility</span>
+      </div>
+      <form class="setting-dropdown" data-setting="voltage_utility">
+        <div class="form-row">
+          <select name="plain" id="plain_utility">
+            <option value="voltage_utility1">21.0</option>
+            <option value="voltage_utility2">21.5</option>
+            <option value="voltage_utility3">22.0</option>
+            <option value="voltage_utility4">22.5</option>
+            <option value="voltage_utility5">23.0</option>
+            <option value="voltage_utility6">23.5</option>
+            <option value="voltage_utility7">24.0</option>
+            <option value="voltage_utility8">24.5</option>
+            <option value="voltage_utility9">25.0</option>
+            <option value="voltage_utility10">25.5</option>
+          </select>
+          <button class="button-set" type="button" onclick="collectAndSendSettings()">Set</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name">
+        <span>Voltage Point Back to Battery</span>
+      </div>
+      <form class="setting-dropdown" data-setting="voltage_batt">
+        <div class="form-row">
+          <select name="plain" id="plain_batt">
+            <option value="voltage_batt1">Full</option>
+            <option value="voltage_batt2">24.0</option>
+            <option value="voltage_batt3">24.5</option>
+            <option value="voltage_batt4">25.0</option>
+            <option value="voltage_batt5">25.5</option>
+            <option value="voltage_batt6">26.0</option>
+            <option value="voltage_batt7">26.5</option>
+            <option value="voltage_batt8">27.0</option>
+            <option value="voltage_batt9">27.5</option>
+            <option value="voltage_batt10">28.0</option>
+            <option value="voltage_batt11">28.5</option>
+            <option value="voltage_batt12">29.0</option>
+          </select>
+          <button class="button-set" type="button" onclick="collectAndSendSettings()">Set</button>
+        </div>
+      </form>
+    </div>
+
+    <!--.//input field////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+
+    <div class="card-main">
+      <div class="card-name">
+        <span>Bulk Charging Voltage
+          <span id="bulkCharging">25.0 - 31.5V</span>
+        </span>
+      </div>
+      <div class="form-row">
+        <input class="input-batt" type="number" id="voltage_charge" name="charge" step="0.1" required />
+        <button class="button-set" type="button" onclick="collectAndSendSettings()">Set</button>
+      </div>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name">
+        <span>Floating Charging Voltage
+          <span id="floatingCharging">25.0 - 31.5V</span>
+        </span>
+      </div>
+      <div class="form-row">
+        <input class="input-batt" type="number" id="voltage_floating" name="floating" step="0.1" required />
+        <button class="button-set" type="button" onclick="collectAndSendSettings()">Set</button>
+      </div>
+    </div>
+
+    <div class="card-main">
+      <div class="card-name">
+        <span>Low DC Cutt off
+          <span id="lowDCcutoff">20.0 - 31.5V</span>
+        </span>
+      </div>
+      <div class="form-row">
+        <input class="input-batt" type="number" id="voltage_cutt" name="cutt" step="0.1" required />
+        <button class="button-set" type="button" onclick="collectAndSendSettings()">Set</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="blockdummy"></div>
+</div>
+<!-- 
     <footer class="main-footer">
         <div class="footer-content">
             <p>&copy; 2025 www.arttech.com copyright.</p>
         </div>
     </footer>
-
-    <script src="batt.js"></script>
+ -->
+<script src="batt.js"></script>
 </body>
+
 </html>

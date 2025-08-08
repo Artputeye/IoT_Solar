@@ -1,11 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
-  fetch('/getstatus')
+  fetch('/getsetting')
     .then(response => response.json())
     .then(data => {
       //console.log(data);
       for (const key in data) {
         const selectElement = document.getElementById(key);
-
         if (selectElement && selectElement.tagName === "SELECT") {
           const valueToSelect = data[key];
           console.log(data);
@@ -18,22 +17,17 @@ document.addEventListener("DOMContentLoaded", function () {
           }
         }
       }
-
       for (const key in data) {
         const checkbox  = document.getElementById(key);
         if (checkbox ) {
           checkbox .checked = data[key] === "ON";
         }
       }
-
-
-
     })
     .catch(error => {
       console.error("Error fetching toggle data:", error);
     });
 });
-
 function toggleSetting(checkbox, settingName) {
 const status = checkbox.checked ? "ON" : "OFF";
 //console.log(`${settingName} is now ${status}`);
@@ -42,11 +36,10 @@ console.log(cmd);
 toggleToserver(cmd);
 }
 
-// ส่ง POST ไปยังเซิร์ฟเวอร์
+// ส่ง Toggle ไปยังเซิร์ฟเวอร์
 function toggleToserver(settingName) {
     console.log(`${settingName} has been toggled`);
     const formdata = new FormData();
-    
     formdata.append("plain", settingName);
     const requestOptions = {
     method: "POST",
@@ -56,19 +49,18 @@ function toggleToserver(settingName) {
   submitAllSettings();
   fetch("/setting", requestOptions)
     .then((response) => response.text())
-    .then((result) => console.log("ผลลัพธ์จากเซิร์ฟเวอร์:", result))
-    .catch((error) => console.error("เกิดข้อผิดพลาด:", error));
+    .then((result) => console.log("Respond:", result))
+    .catch((error) => console.error("Error:", error));
 }
 
-//ส่งค่า dropdown ไป server
+//ส่งค่า dropdown ไปยังเซิร์ฟเวอร์
 document.querySelectorAll('.setting-form').forEach(form => {
     form.addEventListener('submit', function (event) {
         event.preventDefault();
-
         const select = form.querySelector('select');
         const settingType = form.getAttribute('data-setting');
         const value = select.value;
-        submitAllSettings();
+        submitAllSettings(); // ส่งค่าไปเก็บไว้ใน littleFS
         fetch('/setting', {
             method: 'POST',
             headers: {
@@ -95,9 +87,8 @@ document.querySelectorAll('.setting-form').forEach(form => {
 
 
 
-function submitAllSettings() {
+function submitAllSettings() { //ส่งค่า Toggle และ drop down ไปเก็บไว้ใน littleFS
   const data = {};
-
   // เก็บค่าจาก toggle switch ทั้งหมด
   document.querySelectorAll('input[type="checkbox"]').forEach(input => {
     const id = input.id;
@@ -114,10 +105,10 @@ function submitAllSettings() {
       data[id] = selectedOption.text;
     }
   });
-  console.log("ส่งสำเร็จ:", data);
+  console.log("Successed:", data);
   
   // ส่ง JSON ไปยัง ESP32
-  fetch('/setall', {
+  fetch('/savesetting', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -126,11 +117,11 @@ function submitAllSettings() {
   })
     .then(response => response.text())
     .then(result => {
-      console.log("ส่งสำเร็จ:", result);
+      console.log("Successed:", result);
       //alert("Settings updated successfully!");
     })
     .catch(error => {
-      console.error("เกิดข้อผิดพลาด:", error);
+      console.error("Error:", error);
       //alert("Error saving settings.");
     });
 }
