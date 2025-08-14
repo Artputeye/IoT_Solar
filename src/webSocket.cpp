@@ -1,74 +1,117 @@
 #include "websocket.h"
 
 AsyncWebSocket ws("/ws");
-String jsonString = "";
-int i;
-// Json Variable to Hold Sensor Readings
+unsigned long lastTimeMonitor = 0;
+unsigned long MonitorDelay = 3000;
 
-// Timer variables
-unsigned long lastTime = 0;
-unsigned long timerDelay = 3000;
-
-// Get Sensor Readings and return JSON object
-String invMonitors()
+String cleanString(String s)
 {
-    JsonDocument readings;
-    readings["Apparent Power"] = inv.data.ApparentPower;
-    readings["Active Power"] = inv.data.ActivePower;
-    readings["PV Power"] = (inv.data.pvCurrent*inv.data.pvVoltage);
-    readings["Load Percent"] = inv.data.loadPercent;
-    readings["PV Current"] = inv.data.pvCurrent;
-    readings["PV Voltage"] = inv.data.pvVoltage;
-    readings["Grid Voltage"] = inv.data.gridVoltage;
-    readings["Output Voltage"] = inv.data.outputVoltage;
-    readings["Bus Voltage"] = inv.data.busVoltage;
-    readings["Battery Voltage"] = inv.data.batteryVoltage;
-    readings["Grid Frequency"] = inv.data.gridFrequency;
-    readings["Output Frequency"] = inv.data.outputFrequency;
-    readings["Temperature"] = inv.data.temp;
-    readings["Inverter Status"] = inv.data.InverterStatus;
-
-    serializeJsonPretty(readings, jsonString);
-    return jsonString;
+    String result = "";
+    for (unsigned int i = 0; i < s.length(); i++)
+    {
+        char c = s[i];
+        if (c >= 32 && c != 127)
+        { // เอาเฉพาะ ASCII printable
+            result += c;
+        }
+    }
+    return result;
 }
 
-void notifyClients(String invReadings)
+String wsAllDataBase64()
 {
-    ws.textAll(invReadings);
+    invStr = cleanString(invStr);
+    inputStr = cleanString(inputStr);
+
+    JsonDocument doc;
+
+    ///////////////////////Serial Sent////////////////////////////
+    doc["Inverter Data"] = invStr.c_str();
+    ;
+    doc["Command Data"] = inputStr.c_str();
+    ;
+
+    ///////////////////////Monotor////////////////////////////////
+    doc["Apparent Power"] = inv.data.ApparentPower;
+    doc["Active Power"] = inv.data.ActivePower;
+    doc["PV Power"] = inv.data.pvCurrent * inv.data.pvVoltage;
+    doc["Load Percent"] = inv.data.loadPercent;
+    doc["PV Current"] = inv.data.pvCurrent;
+    doc["PV Voltage"] = inv.data.pvVoltage;
+    doc["Grid Voltage"] = inv.data.gridVoltage;
+    doc["Output Voltage"] = inv.data.outputVoltage;
+    doc["Bus Voltage"] = inv.data.busVoltage;
+    doc["Battery Voltage"] = inv.data.batteryVoltage;
+    doc["Grid Frequency"] = inv.data.gridFrequency;
+    doc["Output Frequency"] = inv.data.outputFrequency;
+    doc["Temperature"] = inv.data.temp;
+    doc["Inverter Status"] = inv.data.InverterStatus;
+
+    //////////////////////////Status//////////////////////////////
+    doc["Grid Rating Voltage"] = 0;
+    doc["Grid Current"] = 0;
+    doc["AC Output Rating Voltage"] = 0;
+    doc["AC Output Rating Frequency"] = 0;
+    doc["AC Output Rating Current"] = 0;
+    doc["AC Output Rating Apparent Power"] = 0;
+    doc["AC Output Rating Active Power"] = 0;
+    doc["Battery Rating Voltage"] = 0;
+    doc["Battery Re-charge Voltage"] = 0;
+    doc["Battery Under Voltage"] = 0;
+    doc["Battery Bulk Voltage"] = 0;
+    doc["Battery Float Voltage"] = 0;
+    doc["Battery Type"] = 0;
+    doc["Max AC Charging Current"] = 0;
+    doc["Max Charging Current"] = 0;
+    doc["Input Voltage Range"] = 0;
+    doc["Output Source Priority"] = 0;
+    doc["Charger Source Priority"] = 0;
+    doc["Parallel Max Num"] = 0;
+    doc["Machine Type"] = 0;
+    doc["Topology"] = 0;
+    doc["Output Mode"] = 0;
+    doc["Battery Re-discharge Voltage"] = 0;
+    doc["PV OK Condition for Parallel"] = 0;
+    doc["PV OK Condition for PV Power Balance"] = 0;
+    doc["Max Charging Time"] = 0;
+    doc["Operation Logic"] = 0;
+    doc["Max Discharging Current"] = 0;
+
+    String jsonOut; // serialize JSON
+    serializeJson(doc, jsonOut);
+    return base64::encode(jsonOut); // encode Base64
+}
+
+void notifyClients(const String &base64Msg)
+{
+    ws.binaryAll((const uint8_t *)base64Msg.c_str(), base64Msg.length());
 }
 
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 {
     AwsFrameInfo *info = (AwsFrameInfo *)arg;
-    if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
+    if (info->final && info->index == 0 && info->len == len &&
+        (info->opcode == WS_TEXT || info->opcode == WS_BINARY))
     {
-        // data[len] = 0;
-        // String message = (char*)data;
-        //  Check if the message is "getReadings"
-        // if (strcmp((char*)data, "getReadings") == 0) {
-        // if it is, send current sensor readings
-        String invReadings = invMonitors();
-        // Serial.print(invReadings);
-        notifyClients(invReadings);
-        //}
+        // ส่ง JSON เดียวรวมทุกอย่าง
+        notifyClients(wsAllDataBase64());
     }
 }
 
-void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
+void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
+             void *arg, uint8_t *data, size_t len)
 {
     switch (type)
     {
     case WS_EVT_CONNECT:
-        Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+        Serial.printf("WebSocket client #%u connected from %s\n",
+                      client->id(), client->remoteIP().toString().c_str());
         break;
     case WS_EVT_DISCONNECT:
         Serial.printf("WebSocket client #%u disconnected\n", client->id());
         break;
     case WS_EVT_DATA:
         handleWebSocketMessage(arg, data, len);
-        break;
-    case WS_EVT_PONG:
-    case WS_EVT_ERROR:
         break;
     }
 }
@@ -81,15 +124,17 @@ void initWebSocket()
 
 void wsloop()
 {
-    if ((millis() - lastTime) > timerDelay)
+    if (!inputStr.isEmpty() || !invStr.isEmpty())
     {
-        String invReadings = invMonitors();
-        if (inv.test)
-        {
-            Serial.print(invReadings);
-        }
-        notifyClients(invReadings);
-        lastTime = millis();
+        notifyClients(wsAllDataBase64());
+        delay(100);
     }
+
+    if (millis() - lastTimeMonitor > MonitorDelay)
+    {
+        lastTimeMonitor = millis();
+        notifyClients(wsAllDataBase64());
+    }
+
     ws.cleanupClients();
 }

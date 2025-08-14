@@ -21,30 +21,13 @@
         <div class="header">
             <div class="logo">
                 <div class="logo-icon"></div>
-                WebSerial
+                Web Serial Monitor
             </div>
         </div>
 
         <div class="content">
-            <div class="connection-status" id="connectionStatus">
-                <div class="status-indicator">
-                    <div class="status-dot"></div>
-                    <span id="statusText">Disconnected</span>
-                </div>
-                <button class="connect-btn" id="connectBtn">Connect</button>
-            </div>
-
-            <div class="controls">
-                <button class="control-btn active" data-baud="9600">9600</button>
-                <button class="control-btn" data-baud="115200">115200</button>
-                <button class="control-btn" id="clearBtn">Clear</button>
-                <button class="control-btn" id="autoScrollBtn">Auto-scroll</button>
-            </div>
-
             <div class="terminal" id="terminal">
                 <div class="empty-state">
-                    <div class="empty-state-icon">📡</div>
-                    <div>Click "Connect" to start serial communication</div>
                 </div>
             </div>
 
@@ -53,10 +36,10 @@
                     type="text" 
                     class="message-input" 
                     id="messageInput" 
-                    placeholder="command here" 
-                    disabled
+                    placeholder="Command here"  
                 >
-                <button class="send-btn" id="sendBtn" disabled>Send</button>
+                <button class="send-btn" id="sendBtn" >Send</button>
+                <button class="clear-btn" id="clearBtn">Clear</button> <!-- ปุ่ม Clear -->
             </div>
         </div>
         <div class="blockdummy"></div>  

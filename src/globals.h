@@ -11,9 +11,11 @@
 #include <Update.h>
 #include <ESPmDNS.h>
 #include <WiFiManager.h>
+#include <WiFiMulti.h>
 #include <ArduinoJson.h>
 #include <ArduinoHA.h>
 #include <esp_task_wdt.h>
+#include "base64.h"
 #include <FS.h>
 #ifdef ESP32
 #include <LittleFS.h>
@@ -43,7 +45,10 @@ extern WiFiManager wm;
 
 extern WiFiClient client;
 extern HADevice device;
-extern HAMqtt mqtt;  
+extern HAMqtt mqtt;
+extern HASwitch grid;
+
+extern WiFiMulti Multi;
 
 extern invCommand inv;
 
@@ -52,6 +57,7 @@ extern File fsUploadFile;
 
 // define your default values here, if there are different values in config.json, they are overwritten.
 extern char DEVICE_NAME[28]; //= "INVERTER";  //"Anern 4.2kW";  //"ARRTECH INVERTER";
+extern char WIFI_NAME[30];
 extern char PASSWORD[25];
 extern char MQTT_ADDR[16];     //= "192.168.101.100";//"192.168.1.247";
 extern char MQTT_USERNAME[28]; //= "mqtt-user";//"inverter";  // replace with your credentials
@@ -70,10 +76,9 @@ extern uint8_t Mac[6];
 extern float power_check;
 extern const char *targetDirectory;
 
-// flag for saving data
-extern bool shouldSaveConfig;
 extern int ledState;
 
-extern HASwitch grid;
+extern String inputStr;
+extern String invStr;
 
 #endif

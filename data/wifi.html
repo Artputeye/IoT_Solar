@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ARTTECH</title>
+    <link rel="stylesheet" href="substyle.css" />
+    <link rel="stylesheet" href="mainstyle.css" />
+  </head>
+
+  <body>
+    <header class="navbar">
+      <div class="navbar-brand">
+        <a href="index.html" class="navbar-logo-link">
+          <span class="navbar-text">ARTTECH</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="main-container">
+      <div class="blockhead">
+        <div class="blockname">
+          <p class="namehead">NETWORK SETTING</p>
+        </div>
+      </div>
+
+      <!--.//input field////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+      <div class="blockcontent">
+        <div class="card-main">
+          <div class="para-name"><span>WIFI Name</span></div>
+          <form class="setting-input" data-setting="wifi_name">
+            <div class="form-row">
+              <input
+                class="text-input"
+                type="text"
+                id="wifi_name"
+                name="wifi_name"
+                placeholder="WIFI"
+                required
+              />
+            </div>
+          </form>
+
+          <div class="para-name"><span>WIFI Password</span></div>
+          <form class="setting-input" data-setting="wifi_pass">
+            <div class="form-row">
+              <input
+                id="wifi_password"
+                type="password"
+                aria-describedby="toggleHint"
+                placeholder="Password"
+              />
+              <button
+                id="wifi_toggle"
+                class="icon-btn"
+                type="button"
+                data-target="wifi_password"
+                aria-pressed="false"
+                aria-label="แสดงรหัสผ่าน"
+              >
+                <!-- ไอคอนตาแบบง่าย (SVG) -->
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                </svg>
+              </button>
+            </div>
+          </form>
+
+          <div class="para-name"><span>MQTT User</span></div>
+          <form class="setting-input" data-setting="mqtt_server">
+            <div class="form-row">
+              <input
+                class="text-input"
+                type="text"
+                id="mqtt_user"
+                name="mqtt_user"
+                placeholder="MQTT User"
+                required
+              />
+            </div>
+          </form>
+
+          <div class="para-name"><span>MQTT Password</span></div>
+          <form class="setting-input" data-setting="mqtt_pass">
+            <div class="form-row">
+              <input
+                id="mqtt_password"
+                type="password"
+                aria-describedby="toggleHint"
+                placeholder="Password"
+              />
+              <button
+                id="mqtt-toggle"
+                class="icon-btn"
+                type="button"
+                data-target="mqtt_password"
+                aria-pressed="false"
+                aria-label="แสดงรหัสผ่าน"
+              >
+                <!-- ไอคอนตาแบบง่าย (SVG) -->
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  />
+                </svg>
+              </button> 
+            </div>
+          </form>
+
+          <div class="para-name"><span>MQTT Server</span></div>
+          <form class="setting-input" data-setting="mqtt_server">
+            <div class="form-row">
+              <input
+                class="text-input"
+                type="text"
+                id="mqtt_server"
+                name="mqtt_server"
+                placeholder="192.168.1.0"
+                required
+              />
+            </div>
+          </form>
+
+          <div class="para-name"><span>MQTT Port</span></div>
+          <form class="setting-input" data-setting="mqtt_port">
+            <div class="form-row">
+              <input
+                class="text-input"
+                type="text"
+                id="mqtt_port"
+                name="mqtt_port"
+                placeholder="1883"
+                required
+              />
+            </div>
+          </form>
+        </div>
+
+        <div class="card-middle">
+          <button class="button-save" onclick="sendConfig()">SAVE</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="wifi.js"></script>
+  </body>
+</html>

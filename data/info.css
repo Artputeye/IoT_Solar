@@ -123,6 +123,27 @@
     transform: none;
 }
 
+.clear-btn {
+    padding: 12px 24px;
+    background: #9ca3af;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    min-width: 80px;
+}
+
+.clear-btn:hover {
+    background: #9ca3af;
+}
+
+.clear-btn:active {
+    transform: translateY(1px);
+}
+
 .terminal {
     background: #fafafa;
     border: 1px solid #e2e8f0;

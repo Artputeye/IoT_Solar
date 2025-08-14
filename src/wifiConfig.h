@@ -7,6 +7,7 @@ void wifi_config();
 void wifiManager();
 void wifiMulti();
 void ledIndicator(unsigned long onTime, unsigned long offTime) ;
+void readNetwork();
 void restart();
 
 #endif

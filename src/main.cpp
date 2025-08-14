@@ -85,8 +85,10 @@ void loop()
   esp_task_wdt_reset();
   delay(100);
 }
-
-void TaskMain(void *pvParameters) //CPU Core0
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+void TaskMain(void *pvParameters) // CPU Core0
 {
   unsigned long last = 0;
   while (1)
@@ -94,13 +96,15 @@ void TaskMain(void *pvParameters) //CPU Core0
     // Main function
     mqtt.loop();
     fileManage();
-    wsloop();
     restart();
 
     if ((millis() - lastTime1) > timerDelay1)
     {
       lastTime1 = millis();
-      inv.cmd_inv("QPIGS");
+      if (inv.RunMode)
+      {
+        inv.cmd_inv("QPIGS");
+      }
       inv.Response();
       iotHArun();
       simulateData();
@@ -119,8 +123,10 @@ void TaskMain(void *pvParameters) //CPU Core0
     vTaskDelay(pdMS_TO_TICKS(10));
   }
 }
-
-void TaskSub(void *pvParameters) //CPU Core1
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+void TaskSub(void *pvParameters) // CPU Core1
 {
   unsigned long last = 0;
   while (1)
@@ -136,7 +142,13 @@ void TaskSub(void *pvParameters) //CPU Core1
       lastTime2 = millis();
       inv.serialSent();
       inv.Response();
+      inputStr = inv.inputString;
+      invStr = inv.invData;
+      inv.inputString = "";
+      inv.invData = "";
     }
+
+    wsloop(); // web socket sent to client
 
     // Stackcheck
     if ((millis() - last) > 10000)

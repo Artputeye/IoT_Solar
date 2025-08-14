@@ -1,83 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Toggle Voltage</title>
-  <style>
-    /* Toggle switch style */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 60px;
-      height: 34px;
-    }
+<!-- ฟิลด์รหัสผ่าน 1 -->
+<div class="field">
+  <input id="wifi-password" type="password" placeholder="รหัสผ่าน WiFi">
+  <button type="button" 
+          class="toggle-password" 
+          data-target="wifi-password" 
+          aria-pressed="false" 
+          aria-label="แสดงรหัสผ่าน">
+    👁
+  </button>
+</div>
 
-    .switch input {
-      display: none;
-    }
+<!-- ฟิลด์รหัสผ่าน 2 -->
+<div class="field">
+  <input id="admin-password" type="password" placeholder="รหัสผ่าน Admin">
+  <button type="button" 
+          class="toggle-password" 
+          data-target="admin-password" 
+          aria-pressed="false" 
+          aria-label="แสดงรหัสผ่าน">
+    👁
+  </button>
+</div>
 
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: 0.4s;
-      border-radius: 34px;
-    }
+<script>
+  document.querySelectorAll('.toggle-password').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-target');
+      const input = document.getElementById(targetId);
 
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 26px;
-      width: 26px;
-      left: 4px;
-      bottom: 4px;
-      background-color: white;
-      transition: 0.4s;
-      border-radius: 50%;
-    }
+      const isShown = input.type === 'text';
+      input.type = isShown ? 'password' : 'text';
 
-    input:checked + .slider {
-      background-color: #4CAF50;
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(26px);
-    }
-
-    .voltage-label {
-      margin-left: 15px;
-      font-size: 18px;
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
-
-  <h2>Toggle Voltage</h2>
-
-  <label class="switch">
-    <input type="checkbox" id="voltageToggle">
-    <span class="slider"></span>
-  </label>
-
-  <span id="voltageValue" class="voltage-label">24V</span>
-
-  <script>
-    const toggle = document.getElementById("voltageToggle");
-    const label = document.getElementById("voltageValue");
-
-    toggle.addEventListener("change", function () {
-      if (this.checked) {
-        label.textContent = "48V";
-      } else {
-        label.textContent = "24V";
-      }
+      // อัพเดตสถานะปุ่ม
+      btn.setAttribute('aria-pressed', String(!isShown));
+      btn.setAttribute('aria-label', isShown ? 'แสดงรหัสผ่าน' : 'ซ่อนรหัสผ่าน');
     });
-  </script>
-
-</body>
-</html>
+  });
+</script>

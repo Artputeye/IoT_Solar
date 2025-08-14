@@ -1,7 +1,6 @@
-
-////////////////////////////////////////////////////////////////////////////////////////////
 var gateway = `ws://${window.location.hostname}/ws`;
 var websocket;
+
 // Init web socket when the page loads
 window.addEventListener('load', onload);
 
@@ -16,6 +15,7 @@ function getReadings(){
 function initWebSocket() {
     console.log('Trying to open a WebSocket connection…');
     websocket = new WebSocket(gateway);
+    websocket.binaryType = "arraybuffer"; // สำคัญ! รับเป็น ArrayBuffer
     websocket.onopen = onOpen;
     websocket.onclose = onClose;
     websocket.onmessage = onMessage;
@@ -34,46 +34,26 @@ function onClose(event) {
 
 // Function that receives the message from the ESP32 with the readings
 function onMessage(event) {
-    console.log(event.data);
-    var myObj = JSON.parse(event.data); //แปลง json string เป็น json obj
-    //console.log(myObj);
-    var keys = Object.keys(myObj);//ดึงชื่อของทุก key ใน object myObj มาเก็บไว้ใน array ชื่อ keys เช่น ["voltage", "current"]
+    try {
+        // แปลง ArrayBuffer → String Base64
+        const base64Text = new TextDecoder().decode(new Uint8Array(event.data));
 
-    for (var i = 0; i < keys.length; i++){ // Loop ค่าที่อยู่ใน json obj ไปแสดงใน html
-        var key = keys[i];
-        console.log(keys[i]);
-        document.getElementById(key).innerHTML = myObj[key]; 
-        console.log(myObj[key]);
+        // Decode Base64 → JSON string
+        const jsonText = atob(base64Text);
+
+        // Parse JSON string → object
+        var myObj = JSON.parse(jsonText);
+
+        var keys = Object.keys(myObj);
+
+        for (var i = 0; i < keys.length; i++){
+            var key = keys[i];
+            if (document.getElementById(key)) { // ป้องกัน key ที่ไม่มี element
+                document.getElementById(key).innerHTML = myObj[key]; 
+            }
+        }
+
+    } catch (err) {
+        console.error("Decode/Parse error", err);
     }
 }
-/////////////////////////////////////////////////////////////////////////////////////////////////
-// const socket = new WebSocket(`ws://${location.host}/ws`);
-
-// socket.onopen = () => {
-//   console.log("WebSocket connected");
-// };
-
-// socket.onmessage = event => {
-//   try {
-//     const data = JSON.parse(event.data);
-//     document.getElementById("gridVoltage").textContent      = data.gridVoltage;
-//     document.getElementById("gridFreq").textContent         = data.gridFreq;
-//     document.getElementById("outputVoltage").textContent    = data.outputVoltage;
-//     document.getElementById("outputFreq").textContent       = data.outputFreq;
-//     document.getElementById("apparentPower").textContent    = data.apparentPower;
-//     document.getElementById("activePower").textContent      = data.activePower;
-//     document.getElementById("loadPercent").textContent      = data.loadPercent;
-//     document.getElementById("busVoltage").textContent       = data.busVoltage;
-//     document.getElementById("batteryVoltage").textContent   = data.batteryVoltage;
-//     document.getElementById("temperature").textContent      = data.temperature;
-//     document.getElementById("pvCurrent").textContent        = data.pvCurrent;
-//     document.getElementById("pvVoltage").textContent        = data.pvVoltage;
-//     document.getElementById("inverterStatus").textContent   = data.inverterStatus;
-//   } catch (e) {
-//     console.error("Invalid JSON from server:", event.data);
-//   }
-// };
-
-// socket.onerror = error => {
-//   console.error("WebSocket error:", error);
-// };

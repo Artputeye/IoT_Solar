@@ -10,8 +10,8 @@ void webHandle()
   saveSetting();
   getbatSetting();
   savebatSetting();
-  getWifi();
-  saveWifi();
+  getNetwork();
+  saveNetwork();
   notfoundRoot();
 }
 
@@ -68,16 +68,17 @@ void notfoundRoot()
       path = "/index.html";
     }
 
-    // else if (path == "/set" || path == "/ota" || path == "/filelist")
-    // {
-    //   path += ".html";
-    // }
+    else if (path == "/batt" || path == "/device" || path == "/filelist"|| path == "/info"|| path == "/monitor" || 
+      path == "/ota"|| path == "/set"|| path == "/wifi"   )
+    {
+      path += ".html";
+    }
 
     // else if (!(path.endsWith(".html") || path.endsWith(".css") || path.endsWith(".js") ||
     //            path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".ico") ||
     //            path.endsWith(".svg") || path.endsWith(".json")))
     
-    //            {
+    // //            {
       
     //     if (!path.endsWith("/")) {
     //       path += "/";
@@ -179,6 +180,8 @@ void saveSetting() // API: รับ JSON จาก Client แล้วบัน
     }
     file.close();
     request->send(200, "application/json", "{\"status\":\"ok\"}"); });
+    
+    //ESP.restart();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -251,16 +254,16 @@ void savebatSetting() // API: รับ JSON จาก Client แล้วบั
 ////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// WIFI SETTING /////////////////////////////////////////
 
-void getWifi() // API: ดึง JSON จาก littleFS แล้วส่ง battery.json ไปยัง Client
+void getNetwork() // API: ดึง JSON จาก littleFS แล้วส่ง battery.json ไปยัง Client
 {
-  server.on("/getconfiguration", HTTP_GET, [](AsyncWebServerRequest *request)
+  server.on("/getnetworkconfig", HTTP_GET, [](AsyncWebServerRequest *request)
             {
-    if (!LittleFS.exists("/configuration.json")) {
+    if (!LittleFS.exists("/networkconfig.json")) {
       request->send(404, "application/json", "{\"error\":\"battery.json not found\"}");
       return;
     }
 
-    File file = LittleFS.open("/configuration.json", "r");
+    File file = LittleFS.open("/networkconfig.json", "r");
     if (!file) {
       request->send(500, "application/json", "{\"error\":\"Failed to open file\"}");
       return;
@@ -277,14 +280,14 @@ void getWifi() // API: ดึง JSON จาก littleFS แล้วส่ง b
 
     String jsonResponse;
     serializeJson(doc, jsonResponse);
-    Serial.println("/get configuration : " + jsonResponse);
+    Serial.println("/get networkconfig : " + jsonResponse);
 
     request->send(200, "application/json", jsonResponse); });
 }
 
-void saveWifi() // API: รับ JSON จาก Client แล้วบันทึกไฟล์ battery.json ไปยัง littleFS
+void saveNetwork() // API: รับ JSON จาก Client แล้วบันทึกไฟล์ battery.json ไปยัง littleFS
 {
-  server.on("/configuration", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+  server.on("/networkconfig", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
             {
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, data, len);
@@ -300,7 +303,7 @@ void saveWifi() // API: รับ JSON จาก Client แล้วบันท
       Serial.printf("Received setting: %s = %s\n", key.c_str(), value.c_str());
     }
     // เปิดไฟล์เพื่อเขียนทับ
-    File file = LittleFS.open("/configuration.json", "w");
+    File file = LittleFS.open("/networkconfig.json", "w");
     if (!file) {
       request->send(500, "application/json", "{\"error\":\"Failed to open file\"}");
       return;

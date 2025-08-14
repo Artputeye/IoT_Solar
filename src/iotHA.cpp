@@ -212,6 +212,12 @@ void iotHAsetup()
     IPAddress MQTT_IP(octets[0], octets[1], octets[2], octets[3]);
 
     mqtt.begin(MQTT_IP, PORT, MQTT_USERNAME, MQTT_PASSWORD);
+
+    // Serial.printf("MQTT_IP: %s\n", MQTT_IP);
+    // Serial.printf("PORT: %s\n", PORT);
+    // Serial.printf("MQTT_USERNAME: %s\n", MQTT_USERNAME);
+    // Serial.printf("MQTT_PASSWORD: %s\n", MQTT_PASSWORD);
+
     Serial.println("Home assistnt begin: ");
     delay(1000);
 }

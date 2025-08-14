@@ -140,7 +140,7 @@ void invCommand::cmd_inv(String data)
   // 05 06 13 ab 00 0f bd 2e                           //...«..½.
 
   // parameter setting
-  if (data == "QPIGS") //Device general status parameters inquiry
+  if (data == "QPIGS") // Device general status parameters inquiry
   {
     Serial2.write(QPIGS, sizeof(QPIGS));
     if (print)
@@ -149,7 +149,7 @@ void invCommand::cmd_inv(String data)
     }
   }
 
-    if (data == "QPIRI") //Device Rating Information inquiry
+  if (data == "QPIRI") // Device Rating Information inquiry
   {
     Serial2.write(QPIRI, sizeof(QPIRI));
     if (print)
@@ -315,15 +315,31 @@ void invCommand::cmd_inv(String data)
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-   
+
   if (data == "espreset")
   {
     Serial.println("ESP Reset");
     delay(5000);
     ESP.restart();
   }
+
   ////////////////////////////////////////////////////////////////////////////////
   // Test mode
+
+  if (data == "run mode")
+  {
+    RunMode = true;
+    Serial.println("Run mode");
+  }
+  if (data == "stop mode")
+  {
+    RunMode = false;
+    Serial.println("Stop mode");
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // Test mode
+
   if (data == "test on")
   {
     test = true;
@@ -337,6 +353,7 @@ void invCommand::cmd_inv(String data)
 
   ////////////////////////////////////////////////////////////////////////////////
   // print mode
+
   if (data == "print on")
   {
     print = true;
@@ -350,20 +367,25 @@ void invCommand::cmd_inv(String data)
 
   /////////////////////////////////////////////////////////////////////////////////
   // reset wifi para
+
   if (data == "para res")
   {
     para = true;
     Serial.println("Resset setting");
   }
+
   /////////////////////////////////////////////////////////////////////////////////
   // read DIR SPIFFS
+
   if (data == "littleFS")
   {
     dir = true;
     Serial.println("read DIR SPIFFS");
   }
+
   /////////////////////////////////////////////////////////////////////////////////
   // Format SPIFFS
+
   if (data == "formatFS")
   {
     format = true;
@@ -372,6 +394,7 @@ void invCommand::cmd_inv(String data)
 
   /////////////////////////////////////////////////////////////////////////////////
   // Help
+  
   if (data == "help")
   {
     help();
