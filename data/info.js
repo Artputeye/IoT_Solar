@@ -1,52 +1,90 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const terminal = document.getElementById("terminal");
+var gateway = `ws://${window.location.hostname}/ws`;
+var websocket;
 
-    const ws = new WebSocket(`ws://${window.location.host}/ws`);
-    ws.binaryType = "arraybuffer";
+window.addEventListener('load', onload);
 
-    ws.onopen = () => appendToTerminal("✅ WebSocket Connected");
+function onload(event) {
+    initWebSocket();
+}
 
-    ws.onmessage = (event) => {
+function getReadings() {
+    websocket.send("getReadings");
+}
+
+function initWebSocket() {
+    websocket = new WebSocket(gateway);
+
+    websocket.onopen = () => {
+        console.log("WebSocket Opened");
+        getReadings();
+    };
+
+    websocket.onclose = () => {
+        console.log("WebSocket Closed");
+        setTimeout(initWebSocket, 2000);
+    };
+
+    websocket.onmessage = (event) => {
+        const ts = new Date().toLocaleTimeString();
         try {
-            const base64Text = new TextDecoder().decode(new Uint8Array(event.data));// แปลง ArrayBuffer → String Base64
-            const jsonText = atob(base64Text);// Decode Base64 → JSON string
-            const data = JSON.parse(jsonText);// Parse JSON
+            // event.data เป็น Base64 string
+            const rawText = atob(event.data);
 
-            if (data["Inverter Data"]) {
-                appendToTerminal(`Inverter Data: ${data["Inverter Data"]}`);
+            // 🔹 ลบอักขระควบคุมที่ไม่ใช่ printable ASCII (0x20-0x7E)
+            const jsonText = rawText.replace(/[\x00-\x1F\x7F]/g, "");
+
+            const obj = JSON.parse(jsonText);
+
+            console.log("Decoded JSON:", obj);
+
+            if (obj["Serial"]) {
+                console.log(`Serial : ${obj["Serial"]}`);
+                appendToTerminal(`${ts} Serial : ${obj["Serial"]}`);
             }
-            if (data["Command Data"]) {
-                appendToTerminal(`Command Data: ${data["Command Data"]}`);
+            if (obj["Inverter"]) {
+                console.log(`Inverter: ${obj["Inverter"]}`);
+                appendToTerminal(`${ts} Inverter : ${obj["Inverter"]}`);
             }
 
         } catch (err) {
-            console.error("Decode/Parse error", err);
+            console.error("Decode error:", err, event.data);
         }
     };
 
-    ws.onclose = () => appendToTerminal("❌ WebSocket Disconnected");
+}
 
-    document.getElementById("sendBtn").addEventListener("click", () => {
-        const msg = document.getElementById("messageInput").value.trim();
-        if (msg) {
-            fetchToserver(msg);
-            appendToTerminal(`Sent: ${msg}`);
-            document.getElementById("messageInput").value = "";
-        }
-    });
-
-    document.getElementById("clearBtn").addEventListener("click", () => {
-        terminal.innerHTML = "";
-        appendToTerminal("🧹 Terminal Cleared");
-    });
-
-    function appendToTerminal(message) {
-        const div = document.createElement("div");
-        div.textContent = message;
-        terminal.appendChild(div);
-        terminal.scrollTop = terminal.scrollHeight;
+document.getElementById("sendBtn").addEventListener("click", () => {
+    const ts = new Date().toLocaleTimeString();
+    const msg = document.getElementById("messageInput").value.trim();
+    if (msg) {
+        fetchToserver(msg);
+        appendToTerminal(`${ts} Sent : ${msg}`);
+        document.getElementById("messageInput").value = "";
     }
 });
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+    terminal.innerHTML = "";
+});
+
+messageInput.addEventListener("keydown", (e) => {
+    const ts = new Date().toLocaleTimeString();
+    const msg = document.getElementById("messageInput").value.trim();
+    if (e.key === 'Enter') {
+        if (msg) {
+            fetchToserver(msg);
+            appendToTerminal(`${ts} Sent : ${msg}`);
+            document.getElementById("messageInput").value = "";
+        }
+    }
+});
+
+function appendToTerminal(message) {
+    const div = document.createElement("div");
+    div.textContent = message;
+    terminal.appendChild(div);
+    terminal.scrollTop = terminal.scrollHeight;
+}
 
 function fetchToserver(message) {
     console.log(`${message} to Server`);
@@ -57,7 +95,7 @@ function fetchToserver(message) {
         body: formdata,
         redirect: "follow"
     };
-    fetch("/setting", requestOptions)
+    fetch("/cmd", requestOptions)
         .then((response) => response.text())
         .then((result) => console.log("Respond:", result))
         .catch((error) => console.error("Error:", error));

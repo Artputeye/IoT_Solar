@@ -1,3 +1,4 @@
+//iotHA.cpp
 #include "iotHA.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,7 +43,6 @@ void iotHArun()
     if (!inv.test)
     {
         float power;
-        power = inv.data.pvCurrent * inv.data.pvVoltage;
         GridVolt.setValue(inv.data.gridVoltage);
         GridFrequency.setValue(inv.data.gridFrequency);
         Voltage.setValue(inv.data.outputVoltage);
@@ -54,6 +54,7 @@ void iotHArun()
         Temp.setValue(inv.data.temp);
         pvCurrent.setValue(inv.data.pvCurrent);
         pvVoltage.setValue(inv.data.pvVoltage);
+        power = inv.data.pvCurrent * inv.data.pvVoltage;
         pvPower.setValue(power);
     }
 }

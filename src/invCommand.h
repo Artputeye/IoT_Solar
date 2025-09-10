@@ -2,22 +2,61 @@
 #define INV_COMMAND_H
 #include <Arduino.h>
 #include <string.h>
+#include <map>
 
 class invCommand
 {
 public:
   /***************************************** public variable********************************/
   String invData;
-  String inputString;
+  String serialData;
   unsigned int len;
 
   // parameter setting
-  bool test = false;   // test sent data to home assistant
-  bool print = false;  // serail print data
+  bool debug1 = false; // debug1
+  bool test = false;   // test sent data to home assistant //simulate.cpp, iotHA.cpp
+  bool print = false;  // serail print data //
   bool para = false;   // parameter reste
-  bool format = false; // fomat littleFS
-  bool dir = false;    // dir littleFS
-  bool RunMode = true; // auto mode
+  bool format = false; // fomat littleFS //parameterData.cpp
+  bool dir = false;    // dir littleFS //parameterData.cpp
+  bool RunMode = true; // auto mode //main.cpp, wifiConfig.cpp
+  bool wifi_config = false;
+  bool ip_config = false;
+
+  std::map<String, uint16_t> InvAddress = {
+      {"Buzzer", 0x138A},
+      {"PowerSavingMode", 0x138B},
+      {"LCDBlacklight", 0x138C},
+      {"OverloadAutoRestart", 0x138D},
+      {"OverTempAutoRestart", 0x138E},
+      {"BeepsWhilePrimarySuorceInterrupt", 0x138F},
+      {"ReturnToTheMainLCDPage", 0x1390},
+      {"TransferToBypassOverload", 0x1391},
+      {"RecordFaultCode", 0x1392},
+      {"BatteryEqualization", 0x1393},
+      {"ActivatedImmediately", 0x1394},
+      {"RestoreDefaults", 0x1398},
+      {"ChargerSourcePriority", 0x1399},
+      {"OutputSourcePriority", 0x139A},
+      {"ACInputRange", 0x139B},
+      {"BatteryType", 0x139C},
+      {"MaximumChargingCurrent", 0x139E},
+      {"OutputVoltage", 0x139F},
+      {"MaximumUtilityChargingCurrent", 0x13A0},
+      {"VoltagePointBacktoUtility", 0x13A1},
+      {"VoltagePointBacktoBattery", 0x13A2},
+      {"BulkChargingVoltage", 0x13A3},
+      {"FloatingChargingVoltage", 0x13A4},
+      {"LowBatteryCutoffVoltage", 0x13A5},
+      {"BatteryEqualizationVoltage", 0x13A6},
+      {"BatteryEqualizationTime", 0x13A7},
+      {"BatteryEqualizationTimeout", 0x13A8},
+      {"BatteryEqualizationInterval", 0x13A9},
+      {"GridTieOperation", 0x13AA},
+      {"GridTieCurrent", 0x13AB},
+      {"LedPatternLight", 0x13AC},
+      {"DualOutput", 0x13AD},
+      {"DualVoltagePoint", 0x13AE}};
 
   // Structure to store the data for QPIGS
   struct QPIGSVals_t
@@ -47,61 +86,48 @@ public:
 
   struct QPIRIvals_t // Device Rating Information inquiry
   {
-    uint32_t _unixtime;                   // When the strucure was read from inverter (epoch in seconds)
-    uint32_t GridRatingVoltage;           // Grid rating voltage               xx.x V * 10
-    uint32_t GridRatingCurrent;           // Grid rating current               xx.x A * 10
-    uint32_t ACOutputRatingVoltage;       // AC output rating voltage          xxx.x V * 10
-    uint32_t ACOutputRatingFrequency;     // AC output rating frequency        xx.x Hz * 10
-    uint32_t ACOutputRatingCurrent;       // AC output rating current          xx.x A * 10
-    uint32_t ACOutputRatingApparentPower; // AC output rating apparent power   xxxx VA
-    uint32_t ACOutputRatingActivePower;   // AC output rating active power     xxxx W
-    uint32_t BatteryRatingVoltage;        // Battery rating voltage            xx.x V * 10
-    uint32_t BatteryReChargeVoltage;      // Battery re-charge voltage         xx.x V * 10
-    uint32_t BatteryUnderVoltage;         // Battery under voltage             xx.x V * 10
-    uint32_t BatteryBulkVoltage;          // Battery bulk voltage              xx.x V * 10
-    uint32_t BatteryFloatVoltage;         // Battery float voltage             xx.x V * 10
-    uint8_t BatteryType;                  // Battery type 0-9                  0: AGM 1: Flooded 2: User 3: Pylon 5: Weco 6: Soltaro 8: Lib 9: Lic (5,6,8,9 protocol 2 )
-    uint8_t MaxAC_ChargingCurrent;        // Max AC charging current           xxx A
-    uint8_t MaxChargingCurrent;           // Max charging current              xxx A
-    uint8_t InputVoltageRange;            // input voltage range 0-1           0: Appliance 1: UPS
-    uint8_t OutputSourcePriority;         // output source priority 0-2        0: UtilitySolarBat 1: SolarUtilityBat 2: SolarBatUtility
-    uint8_t ChargerSourcePriority;        // charger source priority 0-3       0: Utility first 1: Solar first 2: Solar + Utility 3: Only solar charging permitted ( protocol 2 1-3 )
-    uint8_t ParallelMaxNum;               // parallel max num 0-9
-    uint8_t MachineType;                  // Machine type                      00: Grid tie; 01: Off Grid; 10: Hybrid.
-    uint8_t Topology;                     // Topology                          0: transformerless 1: transformer
-    uint8_t OutputMode;                   // Output mode 0-7
-                                          // 00: single machine output
-                                          // 01: parallel output 02: Phase 1 of 3 Phase output
-                                          // 03: Phase 2 of 3 Phase output
-                                          // 04: Phase 3 of 3 Phase output
-                                          // 05: Phase 1 of 2 Phase output
-                                          // 06: Phase 2 of 2 Phase output (120°)
-                                          // 07: Phase 2 of 2 Phase output (180°)
-    uint32_t BatteryReDischargeVoltage;   // Battery re-discharge voltage xx.x V *10
-    uint8_t PV_OK_ConditionParallel;      // PV OK condition for parallel
-                                          // 0: As long as one unit of inverters has connect PV, parallel system willconsider PV OK;
-                                          // 1: Only All of inverters have connect PV, parallel system will consider PV OK
-    uint8_t PV_PowerBalance;              // PV power balance
-                                          // 0: PV input max current will be the max charged current;
-                                          // 1: PV input max power will be the sum of the max charged power and loads power.
-    uint32_t MaxChargingTimeAtC_V_Stage;  // Max. charging time at C.V stage (only 48V model)     xxx minute  ( Protocol 2 only )
-    uint8_t OperationLogic;               // Operation Logic (only 48V model) 0-2                             ( Protocol 2 only )
-                                          // 0: Automatically
-                                          // 1: On-line mode
-                                          // 2: ECO mode
-    uint8_t MaxDischargingCurrent;        // Max discharging current (only 48V model)     xxx A
+    uint32_t GridRatingVoltage;           // 1  Grid rating voltage               xx.x V * 10
+    uint32_t GridRatingCurrent;           // 2  Grid rating current               xx.x A * 10
+    uint32_t OutputRatingVoltage;       // 3  AC output rating voltage          xxx.x V * 10
+    uint32_t OutputRatingFrequency;     // 4  AC output rating frequency        xx.x Hz * 10
+    uint32_t OutputRatingCurrent;       // 5  AC output rating current          xx.x A * 10
+    uint32_t OutputRatingApparentPower; // 6  AC output rating apparent power   xxxx VA
+    uint32_t OutputRatingActivePower;   // 7  AC output rating active power     xxxx W
+    uint32_t BatteryRatingVoltage;        // 8  Battery rating voltage            xx.x V * 10
+    uint32_t BatteryReChargeVoltage;      // 9 Battery re-charge voltage         xx.x V * 10
+    uint32_t BatteryUnderVoltage;         // 10 Battery under voltage             xx.x V * 10
+    uint32_t BatteryBulkVoltage;          // 11 Battery bulk voltage              xx.x V * 10
+    uint32_t BatteryFloatVoltage;         // 12 Battery float voltage             xx.x V * 10
+    uint8_t BatteryType;                  // 13 Battery type 0-9                  0: AGM 1: Flooded 2: User 3: Pylon 5: Weco 6: Soltaro 8: Lib 9: Lic (5,6,8,9 protocol 2 )
+    uint8_t MaxAC_ChargingCurrent;        // 14 Max AC charging current           xxx A
+    uint8_t MaxChargingCurrent;           // 15 Max charging current              xxx A
+    uint8_t InputVoltageRange;            // 16 input voltage range 0-1           0: Appliance 1: UPS
+    uint8_t OutputSourcePriority;         // 17 output source priority 0-2        0: UtilitySolarBat 1: SolarUtilityBat 2: SolarBatUtility
+    uint8_t ChargerSourcePriority;        // 18 charger source priority 0-3       0: Utility first 1: Solar first 2: Solar + Utility 3: Only solar charging permitted ( protocol 2 1-3 )
+    uint8_t ParallelMaxNum;               // 19 parallel max num 0-9
+    uint8_t MachineType;                  // 20 Machine type                      00: Grid tie; 01: Off Grid; 10: Hybrid.
+    uint8_t Topology;                     // 21 Topology                          0: transformerless 1: transformer
+    uint8_t OutputMode;                   // 22 Output mode 0-7
+    uint32_t BatteryReDischargeVoltage;   // 23 Battery re-discharge voltage xx.x V *10
+    uint8_t PV_Parallel;          // 24 PV OK condition for parallel
+    uint8_t PV_Balance;               // 25 PV power balance
+    uint32_t MaxChargingTime;  // 26 Max. charging time at C.V stage (only 48V model)     xxx minute  ( Protocol 2 only )
+    uint8_t OperationLogic;               // 27 Operation Logic (only 48V model) 0-2                             ( Protocol 2 only )
+    uint8_t MaxDischargingCurrent;        // 28 Max discharging current (only 48V model)     xxx A
   } rated;
 
   /**************************************** public function ********************************/
   void serialSent();
   void Response();
+  uint16_t modbusCRC(const uint8_t *buf, uint16_t len);
+  size_t buildModbusWrite(uint8_t slaveID, uint16_t regAddr, uint16_t value, uint8_t *frame);
+  void valueToinv(String Name, uint16_t val);
   void cmd_inv(String data);
 
 private:
   /***************************************** private function *******************************/
-  void qpigs_parse(String response);
-  void qpigs_print();
-  void parseInverterResponse(String response);
+  void parseQPIGS(String response);
+  void parseQPIRI(String response);
   void sentinv(String data);
   void help();
 };

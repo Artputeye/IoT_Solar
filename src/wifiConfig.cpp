@@ -1,76 +1,13 @@
+// wifiConfig.cpp
 #include "wifiConfig.h"
 
 unsigned long last = 0;
-int t = 500; // time led status
+//int t = 500; // time led status
+
 float power = 0.0;
 float lastPower = 0.0;
 unsigned long lastChangeTime = 0;            // เวลาเปลี่ยนแปลงล่าสุด (ms)
-const unsigned long timeout = 5 * 60 * 1000; // 2 นาที (300,000 ms)
-
-void mac_config()
-{
-    WiFi.mode(WIFI_STA);
-    WiFi.begin();
-    WiFi.macAddress(Mac);
-    device.setUniqueId(Mac, sizeof(Mac));
-}
-
-void wifi_config()
-{
-    readNetwork();
-    wifiManager();
-    wifiMulti();
-    lastChangeTime = millis();
-}
-
-void wifiManager()
-{
-    WiFiManager wm;
-    wm.setConfigPortalTimeout(120);
-    bool res;
-    res = wm.autoConnect(DEVICE_NAME, PASSWORD);
-    if (!res)
-    {
-        Serial.println("Failed to connect");
-        delay(10000);
-        ESP.restart();
-    }
-    else
-    {
-        Serial.println();
-        Serial.println("WiFi connected");
-        Serial.println("IP address: ");
-        Serial.println(WiFi.localIP());
-    }
-}
-
-void wifiMulti()
-{
-    Multi.addAP(DEVICE_NAME, "12345678");
-}
-
-void restart()
-{
-    if (WiFi.status() != WL_CONNECTED)
-    {
-        Serial.println("Lost WiFi connection. Restarting...");
-        delay(1000);
-        ESP.restart();
-    }
-    //////////////////////////////////////////////////////////////////////////////////
-    power = inv.data.ActivePower;
-    if (power != lastPower)
-    {
-        lastChangeTime = millis(); // อัพเดทเวลาถ้ามีการเปลี่ยน
-        lastPower = power;
-    }
-    if (millis() - lastChangeTime >= timeout)
-    {
-        Serial.println("Power value unchanged for 5 minutes. Restarting...");
-        delay(1000);
-        ESP.restart();
-    }
-}
+const unsigned long timeout = 5 * 60 * 1000; // 5 นาที (300,000 ms)
 
 void ledIndicator(unsigned long onTime, unsigned long offTime)
 {
@@ -85,6 +22,97 @@ void ledIndicator(unsigned long onTime, unsigned long offTime)
         previousMillis = currentMillis;
         ledState = !ledState;
         digitalWrite(LED, ledState ? HIGH : LOW);
+    }
+}
+
+void mac_config()
+{
+    // อ่าน MAC Address ของ ESP32 (byte[6])
+    uint8_t mac[6];
+    WiFi.macAddress(mac);
+
+    // กำหนด Unique ID ให้ HADevice (ใช้ MAC โดยตรง)
+    device.setUniqueId(mac, sizeof(mac));
+
+    // Debug Print
+                                                                                                                 
+    char macStr[18];
+    snprintf(macStr, sizeof(macStr),
+             "%02X:%02X:%02X:%02X:%02X:%02X",
+             mac[0], mac[1], mac[2],
+             mac[3], mac[4], mac[5]);
+
+    Serial.println("========= MAC CONFIG =========");
+    Serial.print("ESP32 Raw MAC Bytes: ");
+    for (int i = 0; i < 6; i++)
+    {
+        Serial.printf("%02X", mac[i]);
+        if (i < 5)
+            Serial.print(":");
+    }
+    Serial.println();
+
+    Serial.print("ESP32 MAC String   : ");
+    Serial.println(macStr);
+    Serial.println("UniqueId assigned to HADevice (using raw bytes)");
+    Serial.println("================================");
+}
+
+void wifi_config()
+{
+    readNetwork();
+    delay(500);
+    if (wifimode == 1)
+    {
+        // Station mode: ต้อง config IP ก่อน connect
+        setupIPConfig();
+        setupWiFiMode();
+    }
+    else
+    {
+        // AP mode: ทำตามปกติ
+        setupWiFiMode();
+    }
+    lastChangeTime = millis();
+}
+
+void restart()
+{
+    if (WiFi.status() != WL_CONNECTED)
+    {
+        if (wifimode == 1)
+        {
+            Serial.println("Lost WiFi connection. Restarting...");
+            delay(1000);
+            // ESP.restart();
+            Serial.println("wifimode " + String(wifimode));
+        }
+    }
+    //////////////////////////////////////////////////////////////////////////////////
+    power = inv.data.ActivePower;
+    if (inv.RunMode == true)
+    {
+        if (power != lastPower)
+        {
+            lastChangeTime = millis(); // อัพเดทเวลาถ้ามีการเปลี่ยน
+            lastPower = power;
+        }
+        if (millis() - lastChangeTime >= timeout)
+        {
+            Serial.println("Power value unchanged for 5 minutes. Restarting...");
+            delay(1000);
+            ESP.restart();
+        }
+    }
+    if (inv.wifi_config)
+    {
+        setupWiFiMode();
+        Serial.println("Debug inv.wifi_config" + String(inv.wifi_config));
+    }
+    if (inv.ip_config)
+    {
+        setupWiFiMode();
+        Serial.println("Debug inv.ip_config" + String(inv.ip_config));
     }
 }
 
@@ -114,19 +142,196 @@ void readNetwork()
     }
 
     // คัดลอก string จาก JSON ลง buffer
+    wifimode = atoi(doc["wifi_mode"] | "0"); // 0 = AP, 1 = STA
+    ipconfig = atoi(doc["ip_config"] | "0"); // 0 = DHCP, 1 = Static
+
     strncpy(WIFI_NAME, doc["wifi_name"] | "", sizeof(WIFI_NAME));
     strncpy(PASSWORD, doc["wifi_password"] | "", sizeof(PASSWORD));
-    
+
+    strncpy(IP_ADDR, doc["ip_address"] | "", sizeof(IP_ADDR));
+    strncpy(SUBNET_MASK, doc["subnet_mask"] | "", sizeof(SUBNET_MASK));
+    strncpy(DEFAULT_GATEWAY, doc["default_gateway"] | "", sizeof(DEFAULT_GATEWAY));
+
     strncpy(MQTT_USERNAME, doc["mqtt_user"] | "", sizeof(MQTT_USERNAME));
     strncpy(MQTT_PASSWORD, doc["mqtt_password"] | "", sizeof(MQTT_PASSWORD));
     strncpy(MQTT_ADDR, doc["mqtt_server"] | "", sizeof(MQTT_ADDR));
     strncpy(MQTT_PORT, doc["mqtt_port"] | "", sizeof(MQTT_PORT));
 
-    // Debug
+    Serial.printf("WIFI MODE: %s\n", (wifimode == 0 ? "AP" : "STA"));
+    Serial.printf("IP CONFIG: %s\n", (ipconfig == 0 ? "DHCP" : "STATIC"));
+
     Serial.printf("WIFI_NAME: %s\n", WIFI_NAME);
     Serial.printf("PASSWORD: %s\n", PASSWORD);
+
+    if (ipconfig)
+    {
+        Serial.printf("IP_ADDR: %s\n", IP_ADDR);
+        Serial.printf("SUBNET_MASK: %s\n", SUBNET_MASK);
+        Serial.printf("DEFAULT_GATEWAY: %s\n", DEFAULT_GATEWAY);
+    }
     Serial.printf("MQTT_ADDR: %s\n", MQTT_ADDR);
     Serial.printf("MQTT_USERNAME: %s\n", MQTT_USERNAME);
     Serial.printf("MQTT_PASSWORD: %s\n", MQTT_PASSWORD);
     Serial.printf("MQTT_PORT: %s\n", MQTT_PORT);
+}
+
+// ฟังก์ชันตั้งค่า WiFi Mode
+void setupWiFiMode()
+{
+    if (wifimode == 0)
+    {
+        Serial.println("📡 Setting WiFi to ACCESS POINT mode");
+
+        // ตั้งค่าโหมด AP
+        WiFi.mode(WIFI_AP);
+
+        // กำหนดค่า IP ของ AP
+        IPAddress local_IP(192, 168, 4, 1);
+        IPAddress gateway(192, 168, 4, 1);
+        IPAddress subnet(255, 255, 255, 0);
+
+        if (!WiFi.softAPConfig(local_IP, gateway, subnet))
+        {
+            Serial.println("❌ Failed to configure AP");
+        }
+
+        // สตาร์ท AP
+        if (WiFi.softAP("Hybrid Inverter", "12345678"))
+        {
+            Serial.println("✅ AP Started");
+            Serial.print("AP IP address: ");
+            Serial.println(WiFi.softAPIP());
+        }
+        else
+        {
+            Serial.println("❌ Failed to start AP");
+        }
+
+        // ใช้ esp_netif จัดการ DHCP server
+        esp_netif_t *ap_netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
+        if (ap_netif)
+        {
+            // stop DHCP server ก่อน (ถ้ามี)
+            esp_netif_dhcps_stop(ap_netif);
+
+            // เซ็ตค่า IP ใหม่ให้ netif
+            esp_netif_ip_info_t ip_info;
+            ip_info.ip.addr = (uint32_t)local_IP;
+            ip_info.gw.addr = (uint32_t)gateway;
+            ip_info.netmask.addr = (uint32_t)subnet;
+            esp_netif_set_ip_info(ap_netif, &ip_info);
+
+            // start DHCP server อีกครั้ง
+            if (esp_netif_dhcps_start(ap_netif) == ESP_OK)
+            {
+                Serial.println("✅ DHCP server started (esp_netif)");
+            }
+            else
+            {
+                Serial.println("❌ Failed to start DHCP server");
+            }
+        }
+        else
+        {
+            Serial.println("❌ Failed to get AP netif handle");
+        }
+    }
+
+    if (wifimode == 1)
+    {
+        Serial.println("📡 Setting WiFi to STATION mode");
+        WiFi.mode(WIFI_STA);
+        WiFi.begin(WIFI_NAME, PASSWORD);
+
+        unsigned long startAttempt = millis();
+        while (WiFi.status() != WL_CONNECTED && millis() - startAttempt < 10000)
+        {
+            delay(500);
+            Serial.print(".");
+        }
+        if (WiFi.status() == WL_CONNECTED)
+        {
+            Serial.println("\n✅ Connected to WiFi (STA Mode)");
+            Serial.println(WiFi.localIP());
+        }
+        else
+        {
+            Serial.println("\n❌ Failed to connect WiFi");
+        }
+    }
+
+    delay(1000);
+    Serial.println("Debug wifimode" + String(wifimode));
+}
+
+// ฟังก์ชันตั้งค่า IP Config
+void setupIPConfig()
+{
+    IPAddress local_IP = parseIP(IP_ADDR);
+    IPAddress subnet = parseIP(SUBNET_MASK);
+    IPAddress gateway = parseIP(DEFAULT_GATEWAY);
+
+    if (ipconfig == 1)
+    {
+        Serial.println("🌐 Using STATIC IP");
+        if (!WiFi.config(local_IP, gateway, subnet))
+        {
+            Serial.println("❌ Failed to configure Static IP");
+        }
+    }
+    else
+    {
+        Serial.println("🌐 Using DHCP (Obtain IP Automatically)");
+        // DHCP default
+    }
+
+    delay(500);
+    Serial.println("Debug ipconfig" + String(ipconfig));
+}
+
+IPAddress parseIP(const char *ipStr)
+{
+    int o1, o2, o3, o4;
+    if (sscanf(ipStr, "%d.%d.%d.%d", &o1, &o2, &o3, &o4) == 4)
+    {
+        return IPAddress(o1, o2, o3, o4);
+    }
+    return IPAddress(0, 0, 0, 0); // ถ้า error
+}
+
+void showAPClients()
+{
+    if (wifimode == 0)
+    { // แสดงเฉพาะ AP mode
+        wifi_sta_list_t wifi_sta_list;
+        esp_netif_sta_list_t netif_sta_list;
+
+        if (esp_wifi_ap_get_sta_list(&wifi_sta_list) == ESP_OK)
+        {
+            if (esp_netif_get_sta_list(&wifi_sta_list, &netif_sta_list) == ESP_OK)
+            {
+                Serial.printf("👥 Connected Clients: %d\n", netif_sta_list.num);
+
+                for (int i = 0; i < netif_sta_list.num; i++)
+                {
+                    esp_netif_sta_info_t station = netif_sta_list.sta[i];
+                    Serial.printf(
+                        " - Client %d: MAC %02X:%02X:%02X:%02X:%02X:%02X, IP %s\n",
+                        i + 1,
+                        station.mac[0], station.mac[1], station.mac[2],
+                        station.mac[3], station.mac[4], station.mac[5],
+                        ip4addr_ntoa((ip4_addr_t *)&station.ip.addr) // แปลง IP เป็น string
+                    );
+                }
+            }
+            else
+            {
+                Serial.println("❌ Failed to get netif station list");
+            }
+        }
+        else
+        {
+            Serial.println("❌ Failed to get AP sta list");
+        }
+    }
 }

@@ -1,145 +1,210 @@
-document.addEventListener("DOMContentLoaded", function () {
-    fetch('/getbattsetting')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+document.addEventListener("DOMContentLoaded", () => {
+
+  const ranges = {
+    BulkChargingVoltage: { "24": [25.0, 31.5], "48": [48.0, 61.0] },
+    FloatingChargingVoltage: { "24": [25.0, 31.5], "48": [48.0, 61.0] },
+    LowBatteryCutoffVoltage: { "24": [20.0, 24.0], "48": [40.0, 48.0] },
+    BatteryEqualizationVoltage: { "24": [25.0, 31.5], "48": [48.0, 61.0] },
+    BatteryEqualizationTime: [5, 900],
+    BatteryEqualizationTimeout: [5, 900],
+    BatteryEqualizationInterval: [1, 90]
+  };
+
+  const units = {
+    BulkChargingVoltage: "V",
+    FloatingChargingVoltage: "V",
+    LowBatteryCutoffVoltage: "V",
+    BatteryEqualizationVoltage: "V",
+    BatteryEqualizationTime: "min",
+    BatteryEqualizationTimeout: "min",
+    BatteryEqualizationInterval: "day"
+  };
+
+  const toggle = document.getElementById("battypeToggle");
+  const battLabel = document.getElementById("battType");
+
+  // ฟังก์ชันตั้ง min/max และ label
+  function setRangeAndLabel(inputId, labelId, voltType) {
+    const input = document.getElementById(inputId);
+    const label = document.getElementById(labelId);
+    if (!input || !ranges[inputId]) return;
+
+    let min, max;
+    if (Array.isArray(ranges[inputId])) {
+      [min, max] = ranges[inputId];
+    } else {
+      [min, max] = ranges[inputId][voltType];
+    }
+
+    input.min = min;
+    input.max = max;
+
+    const unit = units[inputId] || "";
+    if (label) label.textContent = `${min} - ${max} ${unit}`;
+  }
+
+  // ฟังก์ชัน toggle 24/48V
+  function toggleSelect(checkbox) {
+    const voltType = checkbox.checked ? "48" : "24";
+    if (battLabel) battLabel.textContent = voltType + "V";
+
+    // dependent
+    setRangeAndLabel("BulkChargingVoltage", "BulkCharging_Voltage", voltType);
+    setRangeAndLabel("FloatingChargingVoltage", "FloatingCharging_Voltage", voltType);
+    setRangeAndLabel("LowBatteryCutoffVoltage", "LowBatteryCutoff_Voltage", voltType);
+    setRangeAndLabel("BatteryEqualizationVoltage", "BatteryEqualization_Voltage", voltType);
+
+    // fixed
+    setRangeAndLabel("BatteryEqualizationTime", "BatteryEqualization_Time", voltType);
+    setRangeAndLabel("BatteryEqualizationTimeout", "BatteryEqualization_Timeout", voltType);
+    setRangeAndLabel("BatteryEqualizationInterval", "BatteryEqualization_Interval", voltType);
+  }
+
+  // ฟังก์ชันส่งค่าปุ่ม Set
+  window.sendSetting = function(button) {
+    const container = button.closest(".form-row");
+    if (!container) return;
+
+    const inputElement = container.querySelector("select, input");
+    if (!inputElement) return;
+
+    const settingName = inputElement.id;
+    let value = inputElement.value;
+
+    if (inputElement.type === "number") {
+      let min = parseFloat(inputElement.min);
+      let max = parseFloat(inputElement.max);
+      let val = parseFloat(value);
+      let errorMsg = document.getElementById(settingName + "_error");
+      const unit = units[settingName] || "";
+
+      if (val < min || val > max || isNaN(val)) {
+        inputElement.style.border = "2px solid red";
+        if (errorMsg) {
+          errorMsg.textContent = `กรุณาใส่ค่าในช่วง ${min} - ${max} ${unit}`;
+          errorMsg.style.display = "block";
+        }
+        return;
+      } else {
+        inputElement.style.border = "";
+        if (errorMsg) errorMsg.style.display = "none";
+      }
+
+      const voltageKeys = [
+        "BulkChargingVoltage",
+        "FloatingChargingVoltage",
+        "LowBatteryCutoffVoltage",
+        "BatteryEqualizationVoltage"
+      ];
+      if (voltageKeys.includes(settingName)) {
+        value = Math.round(val * 10);
+      } else {
+        value = val;
+      }
+    }
+
+    settingToserver(settingName, value);
+    console.log(`📤 ส่งค่าไป server: ${settingName} = ${value}`);
+  };
+
+  // ฟังก์ชันส่ง toggle checkbox
+  function toggleSetting(checkbox, settingName) {
+    const status = checkbox.checked ? "1" : "0";
+    settingToserver(settingName, status);
+    console.log(`ส่งค่า: ${settingName} = ${status}`);
+  }
+
+  // bind toggle checkbox
+  document.querySelectorAll('.toggle-row input[type="checkbox"]').forEach(cb => {
+    const settingName = cb.getAttribute("data-setting") || cb.id.replace(/\s+/g, "");
+    cb.addEventListener("change", function() {
+      toggleSetting(this, settingName);
+      if (this.id === "battypeToggle") toggleSelect(this);
+    });
+  });
+
+  // โหลดค่าจาก server
+  fetch('/getbattsetting')
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+
+      // เติม <select>
+      for (const key in data) {
+        const selectElement = document.getElementById(key);
+        if (selectElement && selectElement.tagName === "SELECT") {
+          const valueToSelect = data[key];
+          for (const option of selectElement.options) {
+            if (option.value.toLowerCase() === valueToSelect.toLowerCase()) {
+              selectElement.value = option.value;
+              break;
             }
-            return response.json();
-        })
-        .then(data => {
-            console.log(data.battypeToggle);
-            // Toggle switch (24V = checked, 48V = unchecked)
-            //const toggle = document.getElementById('battypeToggle');
-            if (data.battypeToggle === '48V') {
-                toggle.checked = (data.battypeToggle === '48V');
-                batType.textContent = "48V";
-                set48();
-
-            } else {
-                batType.textContent = "24V";
-                set24();
-            }
-
-            // Dropdowns
-            document.getElementById('plain_ac').value = data.maximumChargingCurrent;
-            document.getElementById('plain_batt_type').value = data.batteryType;
-            document.getElementById('plain_utility').value = data.voltageBackToUtility;
-            document.getElementById('plain_batt').value = data.voltageBackToBattery;
-
-            // Inputs
-            document.getElementById('voltage_charge').value = data.bulkChargingVoltage;
-            document.getElementById('voltage_floating').value = data.floatingChargingVoltage;
-            document.getElementById('voltage_cutt').value = data.lowDCCutoff;
-        })
-        .catch(error => {
-            console.error('Error fetching battery settings:', error);
-        });
-
-    const toggle = document.getElementById("battypeToggle");
-    const batType = document.getElementById("battType");
-    const bulkCharge = document.getElementById("bulkCharging");
-    const floatingCharge = document.getElementById("floatingCharging");
-    const dcCuttoff = document.getElementById("lowDCcutoff");
-
-    function toggleSelect(checkbox) {
-        const status = checkbox.checked ? "48V" : "24V";
-        console.log(status);
-        if (status == "48V") {
-            set48();
-        } else {
-            set24();
+          }
         }
-        collectAndSendSettings();
-    };
+      }
 
-    function set24() {
-        batType.textContent = "24V";
-        bulkCharge.textContent = "25.0 - 31.5V";
-        floatingCharge.textContent = "25.0 - 31.5";
-        dcCuttoff.textContent = "20.0 - 24.0V";
-        updateDropdown('plain_batt', ['Full', '24.0', '24.5', '25.0', '25.5', '26.0', '26.5', '27.0', '27.5', '28.0', '28.5', '29.0']);
-        updateDropdown('plain_utility', ['21.0', '21.5', '22.0', '22.5', '23.0', '23.5', '24.0', '24.5', '25.0', '25.5']);
-        changeInputRange("voltage_charge", true);
-        changeInputRange("voltage_floating", true);
-        changeInput(true);
-    }
-
-    function set48() {
-        batType.textContent = "48V";
-        bulkCharge.textContent = "48.0 - 61.0V";
-        floatingCharge.textContent = "48.0 - 61.0";
-        dcCuttoff.textContent = "40.0 - 48.0V";
-        updateDropdown('plain_batt', ['Full', '48', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58']);
-        updateDropdown('plain_utility', ['42', '43', '44', '45', '46', '47', '48', '49', '50', '51']);
-        changeInputRange("voltage_charge", false);
-        changeInputRange("voltage_floating", false);
-        changeInput(false);
-    }
-
-    function updateDropdown(selectId, valuesArray) {
-        const select = document.getElementById(selectId);
-        select.innerHTML = ""; // เคลียร์ option เดิม
-
-        valuesArray.forEach((value, index) => {
-            const option = document.createElement("option");
-            option.value = `${selectId}${index + 1}`; // เช่น plain_batt1, plain_batt2
-            option.text = value;
-            select.appendChild(option);
-        });
-    }
-
-    function changeInputRange(selectId, V_Type) {
-        const input = document.getElementById(selectId);
-        if (V_Type) {
-            input.min = "25.0";
-            input.max = "31.5";
-        } else {
-            input.min = "48.0";
-            input.max = "61.0";
+      // เติม <checkbox>
+      for (const key in data) {
+        const checkbox = document.getElementById(key);
+        if (checkbox && checkbox.type === "checkbox") {
+          checkbox.checked = data[key] === "1";
         }
-    }
+      }
 
-    function changeInput(V_Type) {
-        const input = document.getElementById("voltage_cutt");
-        if (V_Type) {
-            input.min = "20.0";
-            input.max = "24.0";
-        } else {
-            input.min = "40.0";
-            input.max = "48.0";
+      // เติม <input type="number">
+      for (const key in data) {
+        const inputNumber = document.getElementById(key);
+        if (inputNumber && inputNumber.tagName === "INPUT" && inputNumber.type === "number") {
+          inputNumber.value = data[key];
         }
-    }
-});
+      }
 
-function collectAndSendSettings() {
-    const settings = {
-        battypeToggle: document.getElementById('battypeToggle').checked ? '48V' : '24V',
-        maximumChargingCurrent: document.getElementById('plain_ac').value,
-        batteryType: document.getElementById('plain_batt_type').value,
-        voltageBackToUtility: document.getElementById('plain_utility').value,
-        voltageBackToBattery: document.getElementById('plain_batt').value,
-        bulkChargingVoltage: parseFloat(document.getElementById('voltage_charge').value),
-        floatingChargingVoltage: parseFloat(document.getElementById('voltage_floating').value),
-        lowDCCutoff: parseFloat(document.getElementById('voltage_cutt').value)
-    };
-    console.log(settings);
+      // 🔹 ปรับ min/max หลังเติมค่า
+      toggleSelect(toggle);
+    })
+    .catch(error => console.error("Error fetching battery settings:", error));
+
+  // ส่งค่าไป server
+  function settingToserver(settingName, state) {
+    fetch('/setting', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ setting: settingName, value: state })
+    })
+    .then(response => response.text())
+    .then(result => console.log(`✅ ${settingName} updated: ${state}`, result))
+    .catch(error => console.error("❌ Error:", error));
+
+    submitAllSettings();
+  }
+
+  // เก็บค่าและส่งทั้งหมด
+  function submitAllSettings() {
+    const data = {};
+
+    document.querySelectorAll('input[type="checkbox"]').forEach(input => {
+      const id = input.id;
+      if (id) data[id] = input.checked ? "1" : "0";
+    });
+
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+      const id = input.id;
+      if (id) data[id] = input.value;
+    });
+
+    document.querySelectorAll('select').forEach(select => {
+      const id = select.id;
+      if (id) data[id] = select.value;
+    });
 
     fetch('/battsetting', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(settings)
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     })
-        .then(response => {
-            if (response.ok) {
-                alert("Settings sent successfully!");
-            } else {
-                alert("Error sending settings!");
-            }
-        })
-        .catch(error => {
-            console.error("Fetch error:", error);
-            alert("Failed to send settings.");
-        });
-}
+    .then(response => response.text())
+    .then(result => console.log("Successed:", result))
+    .catch(error => console.error("Error:", error));
+  }
+
+});

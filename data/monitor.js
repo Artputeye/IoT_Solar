@@ -8,14 +8,13 @@ function onload(event) {
     initWebSocket();
 }
 
-function getReadings(){
+function getReadings() {
     websocket.send("getReadings");
 }
 
 function initWebSocket() {
     console.log('Trying to open a WebSocket connection…');
     websocket = new WebSocket(gateway);
-    websocket.binaryType = "arraybuffer"; // สำคัญ! รับเป็น ArrayBuffer
     websocket.onopen = onOpen;
     websocket.onclose = onClose;
     websocket.onmessage = onMessage;
@@ -32,28 +31,30 @@ function onClose(event) {
     setTimeout(initWebSocket, 2000);
 }
 
-// Function that receives the message from the ESP32 with the readings
 function onMessage(event) {
     try {
-        // แปลง ArrayBuffer → String Base64
-        const base64Text = new TextDecoder().decode(new Uint8Array(event.data));
+        // event.data เป็น Base64 string ตรง ๆ
+        const base64Text = event.data;
 
         // Decode Base64 → JSON string
-        const jsonText = atob(base64Text);
+        let jsonText = atob(base64Text);
 
-        // Parse JSON string → object
-        var myObj = JSON.parse(jsonText);
+        // 🔹 ลบ control characters ที่ไม่ใช่ ASCII ปกติ
+        jsonText = jsonText.replace(/[\x00-\x1F\x7F]/g, "");
 
-        var keys = Object.keys(myObj);
+        // Parse JSON
+        const myObj = JSON.parse(jsonText);
 
-        for (var i = 0; i < keys.length; i++){
-            var key = keys[i];
-            if (document.getElementById(key)) { // ป้องกัน key ที่ไม่มี element
-                document.getElementById(key).innerHTML = myObj[key]; 
+        // อัปเดตค่าเข้า HTML
+        Object.keys(myObj).forEach((key) => {
+            const el = document.getElementById(key);
+            if (el) {
+                el.innerHTML = myObj[key];
             }
-        }
+        });
 
     } catch (err) {
-        console.error("Decode/Parse error", err);
+        console.error("Decode/Parse error", err, event.data);
     }
 }
+

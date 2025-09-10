@@ -2,34 +2,17 @@
 
 AsyncWebSocket ws("/ws");
 unsigned long lastTimeMonitor = 0;
+unsigned long lastPingTime = 0;
 unsigned long MonitorDelay = 3000;
-
-String cleanString(String s)
-{
-    String result = "";
-    for (unsigned int i = 0; i < s.length(); i++)
-    {
-        char c = s[i];
-        if (c >= 32 && c != 127)
-        { // เอาเฉพาะ ASCII printable
-            result += c;
-        }
-    }
-    return result;
-}
+const unsigned long pingInterval = 25000; // 25 วินาที
 
 String wsAllDataBase64()
 {
-    invStr = cleanString(invStr);
-    inputStr = cleanString(inputStr);
-
     JsonDocument doc;
 
     ///////////////////////Serial Sent////////////////////////////
-    doc["Inverter Data"] = invStr.c_str();
-    ;
-    doc["Command Data"] = inputStr.c_str();
-    ;
+    doc["Serial"] = wsSerial;
+    doc["Inverter"] = wsInverter;
 
     ///////////////////////Monotor////////////////////////////////
     doc["Apparent Power"] = inv.data.ApparentPower;
@@ -48,43 +31,96 @@ String wsAllDataBase64()
     doc["Inverter Status"] = inv.data.InverterStatus;
 
     //////////////////////////Status//////////////////////////////
-    doc["Grid Rating Voltage"] = 0;
-    doc["Grid Current"] = 0;
-    doc["AC Output Rating Voltage"] = 0;
-    doc["AC Output Rating Frequency"] = 0;
-    doc["AC Output Rating Current"] = 0;
-    doc["AC Output Rating Apparent Power"] = 0;
-    doc["AC Output Rating Active Power"] = 0;
-    doc["Battery Rating Voltage"] = 0;
-    doc["Battery Re-charge Voltage"] = 0;
-    doc["Battery Under Voltage"] = 0;
-    doc["Battery Bulk Voltage"] = 0;
-    doc["Battery Float Voltage"] = 0;
-    doc["Battery Type"] = 0;
-    doc["Max AC Charging Current"] = 0;
-    doc["Max Charging Current"] = 0;
-    doc["Input Voltage Range"] = 0;
-    doc["Output Source Priority"] = 0;
-    doc["Charger Source Priority"] = 0;
-    doc["Parallel Max Num"] = 0;
-    doc["Machine Type"] = 0;
-    doc["Topology"] = 0;
-    doc["Output Mode"] = 0;
-    doc["Battery Re-discharge Voltage"] = 0;
-    doc["PV OK Condition for Parallel"] = 0;
-    doc["PV OK Condition for PV Power Balance"] = 0;
-    doc["Max Charging Time"] = 0;
-    doc["Operation Logic"] = 0;
-    doc["Max Discharging Current"] = 0;
+    doc["Grid Rating Voltage"] = inv.rated.GridRatingVoltage;
+    doc["Grid Rating Current"] = inv.rated.GridRatingCurrent;
+    doc["Output Rating Voltage"] = inv.rated.OutputRatingVoltage;
+    doc["Output Rating Frequency"] = inv.rated.OutputRatingFrequency;
+    doc["Output Rating Current"] = inv.rated.OutputRatingCurrent;
+    doc["Output Rating Apparent Power"] = inv.rated.OutputRatingApparentPower;
+    doc["Output Rating Active Power"] = inv.rated.OutputRatingActivePower;
+    doc["Battery Rating Voltage"] = inv.rated.BatteryRatingVoltage;
+    doc["Battery Re-charge Voltage"] = inv.rated.BatteryReChargeVoltage;
+    doc["Battery Under Voltage"] = inv.rated.BatteryUnderVoltage;
+    doc["Battery Bulk Voltage"] = inv.rated.BatteryBulkVoltage;
+    doc["Battery Float Voltage"] = inv.rated.BatteryFloatVoltage;
+    doc["Battery Type"] = inv.rated.BatteryType;
+    doc["Max AC Charging Current"] = inv.rated.MaxAC_ChargingCurrent;
+    doc["Max Charging Current"] = inv.rated.MaxChargingCurrent;
+    doc["Input Voltage Range"] = inv.rated.InputVoltageRange;
+    doc["Output Source Priority"] = inv.rated.OutputSourcePriority;
+    doc["Charger Source Priority"] = inv.rated.ChargerSourcePriority;
+    doc["Parallel Max Num"] = inv.rated.ParallelMaxNum;
+    doc["Machine Type"] = inv.rated.MachineType;
+    doc["Topology"] = inv.rated.Topology;
+    doc["Output Mode"] = inv.rated.OutputMode;
+    doc["Battery Re-discharge Voltage"] = inv.rated.BatteryReDischargeVoltage;
+    doc["PV Parallel"] = inv.rated.PV_Parallel;
+    doc["PV Balance"] = inv.rated.PV_Balance;
+    doc["Max Charging Time"] = inv.rated.MaxChargingTime;
+    doc["Operation Logic"] = inv.rated.OperationLogic;
+    doc["Max Discharging Current"] = inv.rated.MaxDischargingCurrent;
 
     String jsonOut; // serialize JSON
     serializeJson(doc, jsonOut);
     return base64::encode(jsonOut); // encode Base64
 }
 
+void wsClear()
+{
+    JsonDocument doc;
+    ///////////////////////Monitor////////////////////////////////
+    doc["Apparent Power"] = "";
+    doc["Active Power"] = "";
+    doc["PV Power"] = "";
+    doc["Load Percent"] = "";
+    doc["PV Current"] = "";
+    doc["PV Voltage"] = "";
+    doc["Grid Voltage"] = "";
+    doc["Output Voltage"] = "";
+    doc["Bus Voltage"] = "";
+    doc["Battery Voltage"] = "";
+    doc["Grid Frequency"] = "";
+    doc["Output Frequency"] = "";
+    doc["Temperature"] = "";
+    doc["Inverter Status"] = "";
+
+    //////////////////////////Status//////////////////////////////
+    doc["Grid Rating Voltage"] = "";
+    doc["Grid Current"] = "";
+    doc["AC Output Rating Voltage"] = "";
+    doc["AC Output Rating Frequency"] = "";
+    doc["AC Output Rating Current"] = "";
+    doc["AC Output Rating Apparent Power"] = "";
+    doc["AC Output Rating Active Power"] = "";
+    doc["Battery Rating Voltage"] = "";
+    doc["Battery Re-charge Voltage"] = "";
+    doc["Battery Under Voltage"] = "";
+    doc["Battery Bulk Voltage"] = "";
+    doc["Battery Float Voltage"] = "";
+    doc["Battery Type"] = "";
+    doc["Max AC Charging Current"] = "";
+    doc["Max Charging Current"] = "";
+    doc["Input Voltage Range"] = "";
+    doc["Output Source Priority"] = "";
+    doc["Charger Source Priority"] = "";
+    doc["Parallel Max Num"] = "";
+    doc["Machine Type"] = "";
+    doc["Topology"] = "";
+    doc["Output Mode"] = "";
+    doc["Battery Re-discharge Voltage"] = "";
+    doc["PV OK Condition for Parallel"] = "";
+    doc["PV OK Condition for PV Power Balance"] = "";
+    doc["Max Charging Time"] = "";
+    doc["Operation Logic"] = "";
+    doc["Max Discharging Current"] = "";
+
+    String jsonOut; // serialize JSON
+    serializeJson(doc, jsonOut);
+}
+
 void notifyClients(const String &base64Msg)
 {
-    ws.binaryAll((const uint8_t *)base64Msg.c_str(), base64Msg.length());
+    ws.textAll(base64Msg); // ส่ง Text Frame
 }
 
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
@@ -93,7 +129,6 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
     if (info->final && info->index == 0 && info->len == len &&
         (info->opcode == WS_TEXT || info->opcode == WS_BINARY))
     {
-        // ส่ง JSON เดียวรวมทุกอย่าง
         notifyClients(wsAllDataBase64());
     }
 }
@@ -122,19 +157,44 @@ void initWebSocket()
     server.addHandler(&ws);
 }
 
-void wsloop()
+void wsJsonSerial(const String &msg)
 {
-    if (!inputStr.isEmpty() || !invStr.isEmpty())
+    wsSerial = msg;
+    if (!wsSerial.isEmpty())
     {
         notifyClients(wsAllDataBase64());
+        wsSerial = "";
+        inv.serialData = "";
         delay(100);
     }
+}
 
+void wsJsonInverter(const String &msg)
+{
+    wsInverter = msg;
+    if (!wsInverter.isEmpty())
+    {
+        notifyClients(wsAllDataBase64());
+        wsInverter = "";
+        inv.invData = "";
+        delay(100);
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+void wsloop()
+{
     if (millis() - lastTimeMonitor > MonitorDelay)
     {
         lastTimeMonitor = millis();
         notifyClients(wsAllDataBase64());
+        wsClear();
     }
 
+    if (millis() - lastPingTime > pingInterval)
+    {
+        lastPingTime = millis();
+        ws.pingAll();
+    }
     ws.cleanupClients();
 }

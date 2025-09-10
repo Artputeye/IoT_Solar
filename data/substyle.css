@@ -283,7 +283,6 @@ input[type="text"] {
   max-width: 100%;
 }
 
-
 .display-row {
   display: flex;
   align-items: center;
@@ -321,3 +320,11 @@ button.icon-btn {
 button.icon-btn:focus {
   outline: 2px solid #6ca0ff;
 }
+
+.error-container {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+  display: none; /* เริ่มต้นซ่อน */
+}
+

@@ -6,12 +6,13 @@ void webHandle();
 String getContentType(String filename);
 void staticRoot();
 void notfoundRoot();
-void parameterSetting();
+void JsonSetting();
+void cmdSetting();
 void getSetting();
 void saveSetting();
 void getbatSetting();
 void savebatSetting();
 void getNetwork();
-void saveNetwork() ;
+void saveNetwork();
 
 #endif

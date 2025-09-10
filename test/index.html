@@ -1,39 +1,65 @@
-<!-- ฟิลด์รหัสผ่าน 1 -->
-<div class="field">
-  <input id="wifi-password" type="password" placeholder="รหัสผ่าน WiFi">
-  <button type="button" 
-          class="toggle-password" 
-          data-target="wifi-password" 
-          aria-pressed="false" 
-          aria-label="แสดงรหัสผ่าน">
-    👁
-  </button>
-</div>
-
-<!-- ฟิลด์รหัสผ่าน 2 -->
-<div class="field">
-  <input id="admin-password" type="password" placeholder="รหัสผ่าน Admin">
-  <button type="button" 
-          class="toggle-password" 
-          data-target="admin-password" 
-          aria-pressed="false" 
-          aria-label="แสดงรหัสผ่าน">
-    👁
-  </button>
-</div>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WiFi Scanner</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 24px; }
+  .card { max-width: 520px; padding: 16px; border-radius: 14px; box-shadow: 0 10px 20px rgba(0,0,0,.08); }
+  button, select { padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; }
+  button { cursor: pointer; }
+  .row { display:flex; gap:8px; align-items:center; margin: 12px 0; }
+  .muted { color:#666; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h2>เลือกเครือข่าย Wi-Fi</h2>
+    <div class="row">
+      <select id="ssidSelect">
+        <option value="" disabled selected>กดปุ่มสแกนเพื่อโหลดรายการ…</option>
+      </select>
+      <button id="scanBtn">สแกน</button>
+    </div>
+    <div class="muted" id="status">พร้อมสแกน</div>
+  </div>
 
 <script>
-  document.querySelectorAll('.toggle-password').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetId = btn.getAttribute('data-target');
-      const input = document.getElementById(targetId);
+async function scanWifi() {
+  const status = document.getElementById('status');
+  const sel = document.getElementById('ssidSelect');
+  status.textContent = 'กำลังสแกน…';
+  sel.innerHTML = '<option disabled selected>กำลังสแกน…</option>';
+  try {
+    const res = await fetch('/scan', {cache:'no-store'});
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const list = await res.json(); // [{ssid, rssi, secure}, ...]
+    sel.innerHTML = '';
+    if (!list.length) {
+      sel.innerHTML = '<option disabled selected>ไม่พบเครือข่าย</option>';
+      status.textContent = 'ไม่พบเครือข่าย';
+      return;
+    }
+    // เติมรายการลง dropdown
+    for (const ap of list) {
+      const opt = document.createElement('option');
+      const lock = ap.secure ? '🔒' : '🔓';
+      opt.value = ap.ssid;
+      opt.textContent = `${ap.ssid}  (${ap.rssi} dBm) ${lock}`;
+      sel.appendChild(opt);
+    }
+    status.textContent = `พบ ${list.length} เครือข่าย`;
+  } catch (e) {
+    console.error(e);
+    status.textContent = 'สแกนล้มเหลว';
+    sel.innerHTML = '<option disabled selected>สแกนล้มเหลว</option>';
+  }
+}
 
-      const isShown = input.type === 'text';
-      input.type = isShown ? 'password' : 'text';
-
-      // อัพเดตสถานะปุ่ม
-      btn.setAttribute('aria-pressed', String(!isShown));
-      btn.setAttribute('aria-label', isShown ? 'แสดงรหัสผ่าน' : 'ซ่อนรหัสผ่าน');
-    });
-  });
+document.getElementById('scanBtn').addEventListener('click', scanWifi);
+// สแกนอัตโนมัติเมื่อโหลดหน้า
+window.addEventListener('load', scanWifi);
 </script>
+</body>
+</html>

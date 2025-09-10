@@ -1,3 +1,4 @@
+//webHandle.cpp
 #include "webHandle.h"
 const char *PARAM_MESSAGE PROGMEM = "plain";
 
@@ -5,7 +6,8 @@ void webHandle()
 {
   setupOTAUpload();
   staticRoot();
-  parameterSetting();
+  JsonSetting();
+  cmdSetting();
   getSetting();
   saveSetting();
   getbatSetting();
@@ -36,72 +38,67 @@ String getContentType(String filename)
   return "text/plain";
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////// STATIC ROOT /////////////////////////////////////////
 void staticRoot()
 {
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-    Serial.println("Request to '/': Serving /index.html");
-    request->send(LittleFS, "/index.html", "text/html"); });
+  // เสิร์ฟทุกไฟล์ใน LittleFS เช่น index.html, info.css, app.js
+  server.serveStatic("/", LittleFS, "/")
+        .setDefaultFile("index.html")
+        .setCacheControl("max-age=86400");  // cache 1 วัน (ลดการโหลดซ้ำ)
 
-  server.on("/set", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-    Serial.println("Request to '/set': Serving /set.html");
-    request->send(LittleFS, "/set.html", "text/html"); });
-
-  server.on("/ota", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-    Serial.println("Request to '/ota': Serving /ota.html");
-    request->send(LittleFS, "/ota.html", "text/html"); });
-
-  server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
-}
-
-void notfoundRoot()
-{
-  server.onNotFound([](AsyncWebServerRequest *request)
-                    {
-    String path = request->url();
-    Serial.println("Check1: " + path);
-
-    if (path == "/")
-    {
-      path = "/index.html";
-    }
-
-    else if (path == "/batt" || path == "/device" || path == "/filelist"|| path == "/info"|| path == "/monitor" || 
-      path == "/ota"|| path == "/set"|| path == "/wifi"   )
-    {
-      path += ".html";
-    }
-
-    // else if (!(path.endsWith(".html") || path.endsWith(".css") || path.endsWith(".js") ||
-    //            path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".ico") ||
-    //            path.endsWith(".svg") || path.endsWith(".json")))
-    
-    // //            {
-      
-    //     if (!path.endsWith("/")) {
-    //       path += "/";
-    //     }
-    //     path += "index.html";
-    //   }
-
-    //   Serial.println("Check2: " + path);
-       String contentType = getContentType(path);
-
-      if (LittleFS.exists(path))
+  // สำหรับ path พิเศษ เช่น /set, /ota → map ไปยัง .html โดยตรง
+  const char* pages[] = {"/set", "/ota", "/batt", "/device", "/filelist", "/info", "/monitor", "/network"};
+  for (auto &p : pages)
+  {
+    server.on(p, HTTP_GET, [p](AsyncWebServerRequest *request) {
+      String filepath = String(p) + ".html";
+      if (LittleFS.exists(filepath))
       {
-        request->send(LittleFS, path, contentType);
+        //Serial.println("Request to '" + String(p) + "': Serving " + filepath);
+        request->send(LittleFS, filepath, "text/html");
       }
       else
       {
-        request->send(404, "text/plain", "File Not Found\n\nPath: " + path);
-      } });
+        request->send(404, "text/plain", "Page not found");
+      }
+    });
+  }
 }
 
-void parameterSetting() // control route
+////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////// PARAMETER SETTING ////////////////////////////////////
+void JsonSetting() // Control Route
 {
-  server.on("/setting", HTTP_POST, [](AsyncWebServerRequest *request)
+  server.on("/setting", HTTP_POST, [](AsyncWebServerRequest *request){}, NULL,
+    [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+
+      JsonDocument doc;
+      DeserializationError error = deserializeJson(doc, data, len);
+
+      if (error) {
+        //Serial.print(F("deserializeJson() failed: "));
+        //Serial.println(error.f_str());
+        request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
+        return;
+      }
+
+      String setting = doc["setting"].as<String>();
+      uint16_t value  = doc["value"].as<uint16_t>();
+      inv.valueToinv(setting, value);
+
+      Serial.printf("📥 Setting: %s = %d\n", setting.c_str(), value);
+      String response;
+      response = "{\"status\":\"ok\",\"setting\":\"" + setting + "\",\"value\":" + String(value) + "}";
+      request->send(200, "application/json", response);
+  });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////// COMMAND SETTING //////////////////////////////////////
+void cmdSetting() // control route
+{
+  server.on("/cmd", HTTP_POST, [](AsyncWebServerRequest *request)
             {
     String message;
     if (request->hasParam(PARAM_MESSAGE, true)) {
@@ -149,6 +146,8 @@ void getSetting() // API: ดึง JSON จาก littleFS แล้วส่�
     request->send(200, "application/json", jsonResponse); });
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////// SAVE SETTING /////////////////////////////////////////
 void saveSetting() // API: รับ JSON จาก Client แล้วบันทึกไฟล์ Setting.json ไปยัง littleFS
 {
   server.on("/savesetting", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
@@ -164,7 +163,7 @@ void saveSetting() // API: รับ JSON จาก Client แล้วบัน
     for (JsonPair kv : doc.as<JsonObject>()) {
       String key = kv.key().c_str();
       String value = kv.value().as<String>();
-      Serial.printf("Received setting: %s = %s\n", key.c_str(), value.c_str());
+      //Serial.printf("Received setting: %s = %s\n", key.c_str(), value.c_str());
     }
     // เปิดไฟล์เพื่อเขียนทับ
     File file = LittleFS.open("/setting.json", "w");
@@ -218,6 +217,8 @@ void getbatSetting() // API: ดึง JSON จาก littleFS แล้วส�
     request->send(200, "application/json", jsonResponse); });
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////// BATTERY SETTING //////////////////////////////////////
 void savebatSetting() // API: รับ JSON จาก Client แล้วบันทึกไฟล์ battery.json ไปยัง littleFS
 {
   server.on("/battsetting", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
@@ -233,7 +234,7 @@ void savebatSetting() // API: รับ JSON จาก Client แล้วบั
     for (JsonPair kv : doc.as<JsonObject>()) {
       String key = kv.key().c_str();
       String value = kv.value().as<String>();
-      Serial.printf("Received setting: %s = %s\n", key.c_str(), value.c_str());
+      //Serial.printf("Received setting: %s = %s\n", key.c_str(), value.c_str());
     }
     // เปิดไฟล์เพื่อเขียนทับ
     File file = LittleFS.open("/battery.json", "w");
@@ -252,7 +253,7 @@ void savebatSetting() // API: รับ JSON จาก Client แล้วบั
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////// WIFI SETTING /////////////////////////////////////////
+///////////////////////////////////// NETWORK SETTING LOAD /////////////////////////////////
 
 void getNetwork() // API: ดึง JSON จาก littleFS แล้วส่ง battery.json ไปยัง Client
 {
@@ -285,6 +286,8 @@ void getNetwork() // API: ดึง JSON จาก littleFS แล้วส่�
     request->send(200, "application/json", jsonResponse); });
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////// NETWORK SETTING SAVE /////////////////////////////////
 void saveNetwork() // API: รับ JSON จาก Client แล้วบันทึกไฟล์ battery.json ไปยัง littleFS
 {
   server.on("/networkconfig", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
@@ -316,4 +319,26 @@ void saveNetwork() // API: รับ JSON จาก Client แล้วบัน
     }
     file.close();
     request->send(200, "application/json", "{\"status\":\"ok\"}"); });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////// NOT FUOND ///////////////////////////////////////////
+void notfoundRoot()
+{
+  server.onNotFound([](AsyncWebServerRequest *request) {
+    String path = request->url();
+    Serial.println("404 Not Found: " + path);
+
+    // ถ้าเจอไฟล์ใน LittleFS → เสิร์ฟตาม MIME type
+    if (LittleFS.exists(path))
+    {
+      String contentType = getContentType(path);
+      request->send(LittleFS, path, contentType);
+    }
+    else
+    {
+      // ถ้าไม่เจอไฟล์เลย → คืนค่า 404
+      request->send(404, "text/plain", "File Not Found\n\nPath: " + path);
+    }
+  });
 }

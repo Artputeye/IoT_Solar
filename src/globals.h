@@ -5,22 +5,26 @@
 // Libraries
 #include <WiFi.h>
 #include <WiFiClient.h>
+#include <WiFiAP.h>
 #include <AsyncTCP.h>
 #include <WebServer.h>
 #include <ESPAsyncWebServer.h>
 #include <Update.h>
 #include <ESPmDNS.h>
-#include <WiFiManager.h>
-#include <WiFiMulti.h>
+//#include <WiFiManager.h>
+//#include <WiFiMulti.h>
 #include <ArduinoJson.h>
 #include <ArduinoHA.h>
+#include "esp_netif.h"
+#include "esp_wifi.h"
 #include <esp_task_wdt.h>
 #include "base64.h"
+
 #include <FS.h>
 #ifdef ESP32
 #include <LittleFS.h>
 #endif
-
+#include <map>
 /////////////////////////////////////////////////////////////////////////
 // Sub Prongrams
 #include "wifiConfig.h"
@@ -28,7 +32,7 @@
 #include "webHandle.h"
 #include "ota.h"
 #include "invCommand.h"
-#include "parameterData.h"
+#include "littleFS_data.h"
 #include "iotHA.h"
 #include "simulate.h"
 
@@ -41,14 +45,14 @@
 // declare global object out source cpp
 // extern class object;
 extern AsyncWebServer server;
-extern WiFiManager wm;
+//extern WiFiManager wm;
 
 extern WiFiClient client;
 extern HADevice device;
 extern HAMqtt mqtt;
 extern HASwitch grid;
 
-extern WiFiMulti Multi;
+//extern WiFiMulti Multi;
 
 extern invCommand inv;
 
@@ -59,6 +63,13 @@ extern File fsUploadFile;
 extern char DEVICE_NAME[28]; //= "INVERTER";  //"Anern 4.2kW";  //"ARRTECH INVERTER";
 extern char WIFI_NAME[30];
 extern char PASSWORD[25];
+
+////////////////////////////IP ADDRESS///////////////////////////////////////////////////////////////////
+extern char IP_ADDR[16];
+extern char SUBNET_MASK[16];
+extern char DEFAULT_GATEWAY[16];
+
+////////////////////////////MQTT ADDRESS/////////////////////////////////////////////////////////////////
 extern char MQTT_ADDR[16];     //= "192.168.101.100";//"192.168.1.247";
 extern char MQTT_USERNAME[28]; //= "mqtt-user";//"inverter";  // replace with your credentials
 extern char MQTT_PASSWORD[28]; //= "1234";
@@ -78,7 +89,10 @@ extern const char *targetDirectory;
 
 extern int ledState;
 
-extern String inputStr;
-extern String invStr;
+extern String wsSerial;
+extern String wsInverter;
+
+extern bool ipconfig;
+extern bool wifimode;
 
 #endif

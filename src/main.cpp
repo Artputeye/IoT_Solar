@@ -1,9 +1,9 @@
+// main.cpp
 #include "globals.h"
 
 unsigned long lastTime1 = 0;
 unsigned long lastTime2 = 0;
-unsigned long timerDelay1 = 3000;
-unsigned long timerDelay2 = 100;
+bool wstate;
 
 WiFiClient client;           // home assistant
 HADevice device;             // home assistant
@@ -85,6 +85,7 @@ void loop()
   esp_task_wdt_reset();
   delay(100);
 }
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,8 +98,7 @@ void TaskMain(void *pvParameters) // CPU Core0
     mqtt.loop();
     fileManage();
     restart();
-
-    if ((millis() - lastTime1) > timerDelay1)
+    if ((millis() - lastTime1) > 3000) // Delay time
     {
       lastTime1 = millis();
       if (inv.RunMode)
@@ -106,23 +106,27 @@ void TaskMain(void *pvParameters) // CPU Core0
         inv.cmd_inv("QPIGS");
       }
       inv.Response();
+      wsJsonInverter(inv.invData);
       iotHArun();
       simulateData();
-      // Serial.println("Main function");
+      //Serial.printf("WIFI MODE: %s\n", (wstate == 0 ? "Unconnect" : "Connect"));
     }
 
     // Stackcheck
     if ((millis() - last) > 10000)
     {
+      inv.cmd_inv("QPIRI");
       last = millis();
       UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
       // Serial.print("Remain Stack Maintask: ");
       // Serial.println(stackRemaining);
     }
+    // Serial.println("Debug e1");
     esp_task_wdt_reset();
     vTaskDelay(pdMS_TO_TICKS(10));
   }
 }
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,33 +135,35 @@ void TaskSub(void *pvParameters) // CPU Core1
   unsigned long last = 0;
   while (1)
   {
-    if (WiFi.status() == WL_CONNECTED)
+    wstate = (WiFi.status() == WL_CONNECTED);
+    if (wstate)
     {
       ledIndicator(100, 2000);
     }
+    else
+    {
+      ledIndicator(300, 300);
+    }
 
-    // Manual Serial
-    if ((millis() - lastTime2) > timerDelay2)
+    if ((millis() - lastTime2) > 100) // Delay time
     {
       lastTime2 = millis();
       inv.serialSent();
+      wsJsonSerial(inv.serialData);
       inv.Response();
-      inputStr = inv.inputString;
-      invStr = inv.invData;
-      inv.inputString = "";
-      inv.invData = "";
     }
 
-    wsloop(); // web socket sent to client
-
+    wsloop();
     // Stackcheck
     if ((millis() - last) > 10000)
     {
       last = millis();
       UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
+      showAPClients();
       // Serial.print("Remain Stack Subtask: ");
       // Serial.println(stackRemaining);
     }
+    // Serial.println("Debug e2");
     esp_task_wdt_reset();
     vTaskDelay(pdMS_TO_TICKS(10));
   }

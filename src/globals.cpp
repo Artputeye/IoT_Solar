@@ -1,13 +1,19 @@
 #include "globals.h"
 
 AsyncWebServer server(80);
-WiFiMulti Multi;
 
 invCommand inv; // command inverter
 
 char DEVICE_NAME[28] = "Hybrid Inverter"; //= "INVERTER";  //"Anern 4.2kW";  //"ARRTECH INVERTER";
+char DEVICE_PASS[28] = "12345678"; //= "INVERTER";  //"Anern 4.2kW";  //"ARRTECH INVERTER";
+
 char WIFI_NAME[30];
 char PASSWORD[25];
+
+char IP_ADDR[16];
+char SUBNET_MASK[16];
+char DEFAULT_GATEWAY[16];
+
 char MQTT_ADDR[16];     //= "192.168.101.100";//"192.168.1.247";
 char MQTT_USERNAME[28]; //= "mqtt-user";//"inverter";  // replace with your credentials
 char MQTT_PASSWORD[28]; //= "12345678";
@@ -22,7 +28,10 @@ char pass[10] = "12345678";
 
 uint8_t Mac[6];
 
-String inputStr;
-String invStr;
-
 int ledState = LOW;
+
+String wsSerial;
+String wsInverter;
+
+bool ipconfig;
+bool wifimode;
