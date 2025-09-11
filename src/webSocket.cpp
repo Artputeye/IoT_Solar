@@ -59,7 +59,10 @@ String wsAllDataBase64()
     doc["Max Charging Time"] = inv.rated.MaxChargingTime;
     doc["Operation Logic"] = inv.rated.OperationLogic;
     doc["Max Discharging Current"] = inv.rated.MaxDischargingCurrent;
+    /////////////////////////////////Alarm////////////////////////////////////
+    doc["Inverter Faults"] = inv.faultList;
 
+    /////////////////////////////////////////////////////////////////////////
     String jsonOut; // serialize JSON
     serializeJson(doc, jsonOut);
     return base64::encode(jsonOut); // encode Base64

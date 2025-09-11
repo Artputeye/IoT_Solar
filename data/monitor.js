@@ -58,3 +58,13 @@ function onMessage(event) {
     }
 }
 
+function updateFaults(faults) {
+  const faultDiv = document.getElementById("inverter fault");
+  if (faults.length === 0) {
+    faultDiv.textContent = "OK";
+    faultDiv.style.color = "green";
+  } else {
+    faultDiv.textContent = faults.join(", ");
+    faultDiv.style.color = "red";
+  }
+}

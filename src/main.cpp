@@ -92,6 +92,7 @@ void loop()
 void TaskMain(void *pvParameters) // CPU Core0
 {
   unsigned long last = 0;
+  bool toggle = false;
   while (1)
   {
     // Main function
@@ -109,13 +110,21 @@ void TaskMain(void *pvParameters) // CPU Core0
       wsJsonInverter(inv.invData);
       iotHArun();
       simulateData();
-      //Serial.printf("WIFI MODE: %s\n", (wstate == 0 ? "Unconnect" : "Connect"));
+      // Serial.printf("WIFI MODE: %s\n", (wstate == 0 ? "Unconnect" : "Connect"));
     }
 
     // Stackcheck
     if ((millis() - last) > 10000)
     {
-      inv.cmd_inv("QPIRI");
+      if (toggle)
+      {
+        inv.cmd_inv("QPIRI"); // ส่งคำสั่งแรก
+      }
+      else
+      {
+        inv.cmd_inv("QPIWS"); // ส่งคำสั่งที่สอง
+      }
+      toggle = !toggle;
       last = millis();
       UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
       // Serial.print("Remain Stack Maintask: ");
