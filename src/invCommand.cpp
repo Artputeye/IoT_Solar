@@ -18,27 +18,22 @@ void invCommand::serialSent()
 
 void invCommand::Response()
 {
-  while (Serial2.available() > 0)
+  unsigned long startTime = millis();
+  const unsigned long timeout = 500; // อยู่ใน loop ไม่เกิน 500ms
+
+  while (Serial2.available() > 0 && millis() - startTime < timeout)
   {
     invData = Serial2.readStringUntil('\n');
     Serial.println("Inverter respond");
     Serial.println(invData);
     len = invData.length();
     Serial.println("len: " + String(len));
-    // Parse respond from inverter
-    if (len == 110)
-    {
-      parseQPIGS(invData); // Inverter Value
-    }
-    if (len == 112)
-    {
-      parseQPIRI(invData); // Rate inverter
-    }
-    if (len == 36)
-    {
-      parseQPIWS(invData); // Alarm status
-    }
-    delay(10);
+
+    if (len == 110) parseQPIGS(invData);
+    if (len == 112) parseQPIRI(invData);
+    if (len == 36)  parseQPIWS(invData);
+
+    vTaskDelay(10);
   }
 }
 

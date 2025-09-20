@@ -30,24 +30,21 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function toggleSetting(checkbox, settingName) {
-  const status = checkbox.checked ? "1" : "0";
-  const cmd = settingName + " " + status;
-  console.log(cmd);
-  settingToserver(cmd);
+  const status = checkbox.checked ? 1 : 0;
+  console.log(`${settingName} ${status}`);
+  settingToserver(settingName, status);  // ✅ ส่งชื่อกับค่าแยกกัน
 }
 
-//ส่งค่า Toggle ไปยังเซิร์ฟเวอร์
+// ส่งค่า Toggle ไปยังเซิร์ฟเวอร์
 function settingToserver(settingName, state) {
   console.log(`${settingName} has been toggled to ${state}`);
 
   fetch('/setting', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      setting: settingName,
-      value: state ? 1 : 0   // 1 = ON, 0 = OFF
+      setting: settingName,   // ✅ ไม่มีเลขติดชื่อ
+      value: state
     }),
   })
     .then(response => response.text())
@@ -58,7 +55,8 @@ function settingToserver(settingName, state) {
     .catch(error => {
       console.error("❌ Error:", error);
     });
-    submitAllSettings();
+
+  submitAllSettings();
 }
 
 //ส่งค่า dropdown ไปยังเซิร์ฟเวอร์

@@ -127,10 +127,8 @@ void TaskMain(void *pvParameters) // CPU Core0
       toggle = !toggle;
       last = millis();
       UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
-      // Serial.print("Remain Stack Maintask: ");
       // Serial.println(stackRemaining);
     }
-    // Serial.println("Debug e1");
     esp_task_wdt_reset();
     vTaskDelay(pdMS_TO_TICKS(10));
   }
@@ -163,7 +161,7 @@ void TaskSub(void *pvParameters) // CPU Core1
     }
 
     wsloop();
-    // Stackcheck
+
     if ((millis() - last) > 10000)
     {
       last = millis();

@@ -232,11 +232,11 @@ void GridTie(bool state, HASwitch *sender)
     sender->setState(state); // report state back to the Home Assistant
     if (state)
     {
-        inv.cmd_inv("grid on");
+        inv.valueToinv("GridTieOperation", 1);
     }
     if (!state)
     {
-        inv.cmd_inv("grid off");
+        inv.valueToinv("GridTieOperation", 0);
     }
 }
 

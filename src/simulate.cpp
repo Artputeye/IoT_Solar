@@ -63,6 +63,7 @@ void simulateData()
         Temp.setValue(t);
         pvCurrent.setValue(pvc);
         pvVoltage.setValue(pvv);
+        pvPower.setValue(power);
 
         Serial.println("V:" + String(volt, 2));
     }

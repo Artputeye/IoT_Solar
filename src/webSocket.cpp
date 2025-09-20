@@ -191,7 +191,7 @@ void wsloop()
     {
         lastTimeMonitor = millis();
         notifyClients(wsAllDataBase64());
-        wsClear();
+        //wsClear();
     }
 
     if (millis() - lastPingTime > pingInterval)
