@@ -5,8 +5,6 @@
 void ledIndicator(unsigned long onTime, unsigned long offTime) ;
 void mac_config();
 void wifi_config();
-void wifiManager();
-void wifiMulti();
 void restart();
 void readNetwork();
 void setupWiFiMode();

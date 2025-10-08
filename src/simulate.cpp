@@ -18,6 +18,7 @@ void simulateData()
         float pvv = 335.7 + (float(i) / 10) + (float(i) / 100);
         float batt = 23.3 + (float(i) / 10);
         float power = pvc * pvv;
+        float curr = appar / volt; // I=S/V
 
         // Monitor/////////////////////////////////////////////////
 
@@ -27,12 +28,11 @@ void simulateData()
         inv.data.loadPercent = per;
         inv.data.pvCurrent = pvc;
         inv.data.pvVoltage = pvv;
-        inv.data.gridVoltage = volt;
         inv.data.outputVoltage = volt;
+        inv.data.outputCurrent = curr;
+        inv.data.outputFrequency = fre;
         inv.data.busVoltage = vbus;
         inv.data.batteryVoltage = batt;
-        inv.data.gridFrequency = fre;
-        inv.data.outputFrequency = fre;
         inv.data.temp = t;
 
         // Status////////////////////////////////////////////////
@@ -52,10 +52,9 @@ void simulateData()
 
         // Home Assistant////////////////////////////////////////
 
-        GridVolt.setValue(volt);
-        GridFrequency.setValue(fre);
-        Voltage.setValue(volt);
-        Frequency.setValue(fre);
+        OutputVolt.setValue(volt);
+        OutputCurrent.setValue(curr);
+        OutputFrequency.setValue(fre);
         ApparentPower.setValue(appar);
         ActivePower.setValue(active);
         LoadPercent.setValue(per);

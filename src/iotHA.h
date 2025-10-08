@@ -18,10 +18,9 @@ extern HASwitch grid;
 // extern HASelect PrioritySelect("PrioritySelect");
 // extern HASelect OutputSelect("OutputSelect");
 
-extern HASensorNumber GridVolt;
-extern HASensorNumber GridFrequency;
-extern HASensorNumber Voltage;
-extern HASensorNumber Frequency;
+extern HASensorNumber OutputVolt;
+extern HASensorNumber OutputCurrent;
+extern HASensorNumber OutputFrequency;
 extern HASensorNumber ApparentPower;
 extern HASensorNumber ActivePower;
 extern HASensorNumber LoadPercent;

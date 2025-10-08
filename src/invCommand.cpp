@@ -29,9 +29,12 @@ void invCommand::Response()
     len = invData.length();
     Serial.println("len: " + String(len));
 
-    if (len == 110) parseQPIGS(invData);
-    if (len == 112) parseQPIRI(invData);
-    if (len == 36)  parseQPIWS(invData);
+    if (len == 110)
+      parseQPIGS(invData);
+    if (len == 112)
+      parseQPIRI(invData);
+    if (len == 36)
+      parseQPIWS(invData);
 
     vTaskDelay(10);
   }
@@ -380,6 +383,7 @@ void invCommand::parseQPIGS(String response)
       index++;
     }
   }
+  data.outputCurrent = data.ApparentPower / data.gridVoltage;
 }
 
 void invCommand::parseQPIRI(String response)

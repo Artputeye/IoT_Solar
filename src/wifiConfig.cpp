@@ -2,7 +2,7 @@
 #include "wifiConfig.h"
 
 unsigned long last = 0;
-//int t = 500; // time led status
+// int t = 500; // time led status
 
 float power = 0.0;
 float lastPower = 0.0;
@@ -35,7 +35,7 @@ void mac_config()
     device.setUniqueId(mac, sizeof(mac));
 
     // Debug Print
-                                                                                                                 
+
     char macStr[18];
     snprintf(macStr, sizeof(macStr),
              "%02X:%02X:%02X:%02X:%02X:%02X",
@@ -78,13 +78,14 @@ void wifi_config()
 
 void restart()
 {
-    if (WiFi.status() != WL_CONNECTED)
+    if (wifimode == 1)
     {
-        if (wifimode == 1)
+        if (WiFi.status() != WL_CONNECTED)
         {
+
             Serial.println("Lost WiFi connection. Restarting...");
             delay(1000);
-            // ESP.restart();
+            ESP.restart();
             Serial.println("wifimode " + String(wifimode));
         }
     }

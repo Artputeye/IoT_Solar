@@ -83,6 +83,7 @@ public:
     uint32_t unknow18;       // 18
     uint32_t unknow19;       // 19
     uint32_t unknow20;       // 20
+    float outputCurrent;       // 21
   } data;
 
   struct QPIRIvals_t // Device Rating Information inquiry

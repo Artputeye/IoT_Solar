@@ -23,10 +23,9 @@ HASwitch grid("grid");
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Sensor object define
-HASensorNumber GridVolt("GrindVolt", HASensorNumber::PrecisionP1);
-HASensorNumber GridFrequency("GrindFrequency", HASensorNumber::PrecisionP1);
-HASensorNumber Voltage("Voltage", HASensorNumber::PrecisionP1);
-HASensorNumber Frequency("Frequency", HASensorNumber::PrecisionP1);
+HASensorNumber OutputVolt("OutputVolt", HASensorNumber::PrecisionP1);
+HASensorNumber OutputCurrent("OutputCurrent", HASensorNumber::PrecisionP1);
+HASensorNumber OutputFrequency("OutputFrequency", HASensorNumber::PrecisionP1);
 HASensorNumber ApparentPower("ApparentPower");
 HASensorNumber ActivePower("ActivePower");
 HASensorNumber LoadPercent("LoadPercent");
@@ -43,10 +42,9 @@ void iotHArun()
     if (!inv.test)
     {
         float power;
-        GridVolt.setValue(inv.data.gridVoltage);
-        GridFrequency.setValue(inv.data.gridFrequency);
-        Voltage.setValue(inv.data.outputVoltage);
-        Frequency.setValue(inv.data.outputFrequency);
+        OutputVolt.setValue(inv.data.outputVoltage);
+        OutputCurrent.setValue(inv.data.outputCurrent);
+        OutputFrequency.setValue(inv.data.outputFrequency);
         ApparentPower.setValue(inv.data.ApparentPower);
         ActivePower.setValue(inv.data.ActivePower);
         LoadPercent.setValue(inv.data.loadPercent);
@@ -151,21 +149,17 @@ void iotHAsetup()
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Name sensor device state
-    GridVolt.setName("Grid Volt");
-    GridVolt.setIcon("mdi:home");
-    GridVolt.setUnitOfMeasurement("V");
+    OutputVolt.setName("Output Voltage");
+    OutputVolt.setIcon("mdi:home");
+    OutputVolt.setUnitOfMeasurement("V");
 
-    GridFrequency.setName("Grid Freq");
-    GridFrequency.setIcon("mdi:home");
-    GridFrequency.setUnitOfMeasurement("Hz");
+    OutputCurrent.setName("Output Current");
+    OutputCurrent.setIcon("mdi:home");
+    OutputCurrent.setUnitOfMeasurement("A");
 
-    Voltage.setName("Voltage");
-    Voltage.setIcon("mdi:flash-triangle");
-    Voltage.setUnitOfMeasurement("V");
-
-    Frequency.setName("Frequency");
-    Frequency.setIcon("mdi:sine-wave");
-    Frequency.setUnitOfMeasurement("Hz");
+    OutputFrequency.setName("Output Freq");
+    OutputFrequency.setIcon("mdi:home");
+    OutputFrequency.setUnitOfMeasurement("Hz");
 
     ApparentPower.setName("Apparent Power");
     ApparentPower.setIcon("mdi:transmission-tower");
