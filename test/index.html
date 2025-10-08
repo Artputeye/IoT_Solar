@@ -1,65 +1,159 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>WiFi Scanner</title>
-<style>
-  body { font-family: system-ui, sans-serif; margin: 24px; }
-  .card { max-width: 520px; padding: 16px; border-radius: 14px; box-shadow: 0 10px 20px rgba(0,0,0,.08); }
-  button, select { padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; }
-  button { cursor: pointer; }
-  .row { display:flex; gap:8px; align-items:center; margin: 12px 0; }
-  .muted { color:#666; font-size: 0.9rem; }
-</style>
+  <meta charset="UTF-8">
+  <title>OTA Upload</title>
+  <style>
+    .hidden { display: none; }
+    .file-input-group { margin: 10px 0; }
+  </style>
 </head>
 <body>
-  <div class="card">
-    <h2>เลือกเครือข่าย Wi-Fi</h2>
-    <div class="row">
-      <select id="ssidSelect">
-        <option value="" disabled selected>กดปุ่มสแกนเพื่อโหลดรายการ…</option>
-      </select>
-      <button id="scanBtn">สแกน</button>
-    </div>
-    <div class="muted" id="status">พร้อมสแกน</div>
+  <h1>OTA Firmware / LittleFS</h1>
+
+  <label for="type">OTA Mode:</label>
+  <select id="type">
+    <option value="otafirmware">Firmware</option>
+    <option value="otalittlefs">LittleFS</option>
+  </select>
+
+  <div>
+    <label>
+      <input type="checkbox" id="chkFile" checked onchange="toggleMode('file')"> File
+    </label>
+    <label>
+      <input type="checkbox" id="chkFolder" onchange="toggleMode('folder')"> Folder
+    </label>
   </div>
 
-<script>
-async function scanWifi() {
-  const status = document.getElementById('status');
-  const sel = document.getElementById('ssidSelect');
-  status.textContent = 'กำลังสแกน…';
-  sel.innerHTML = '<option disabled selected>กำลังสแกน…</option>';
-  try {
-    const res = await fetch('/scan', {cache:'no-store'});
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const list = await res.json(); // [{ssid, rssi, secure}, ...]
-    sel.innerHTML = '';
-    if (!list.length) {
-      sel.innerHTML = '<option disabled selected>ไม่พบเครือข่าย</option>';
-      status.textContent = 'ไม่พบเครือข่าย';
-      return;
-    }
-    // เติมรายการลง dropdown
-    for (const ap of list) {
-      const opt = document.createElement('option');
-      const lock = ap.secure ? '🔒' : '🔓';
-      opt.value = ap.ssid;
-      opt.textContent = `${ap.ssid}  (${ap.rssi} dBm) ${lock}`;
-      sel.appendChild(opt);
-    }
-    status.textContent = `พบ ${list.length} เครือข่าย`;
-  } catch (e) {
-    console.error(e);
-    status.textContent = 'สแกนล้มเหลว';
-    sel.innerHTML = '<option disabled selected>สแกนล้มเหลว</option>';
-  }
-}
+  <!-- input สำหรับไฟล์ -->
+  <div id="fileInputGroup" class="file-input-group">
+    <label class="custom-file-upload">
+      <input type="file" id="file" />
+      Select File
+    </label>
+  </div>
 
-document.getElementById('scanBtn').addEventListener('click', scanWifi);
-// สแกนอัตโนมัติเมื่อโหลดหน้า
-window.addEventListener('load', scanWifi);
-</script>
+  <!-- input สำหรับโฟลเดอร์ -->
+  <div id="folderInputGroup" class="file-input-group hidden">
+    <label class="custom-file-upload">
+      <input type="file" id="folder" webkitdirectory multiple />
+      Select Folder
+    </label>
+  </div>
+
+  <span id="file-name" class="file-name">No file chosen</span>
+  <br>
+  <button onclick="upload()">Upload</button>
+  <progress id="progress" max="100" value="0"></progress>
+
+  <script>
+    function toggleMode(mode) {
+      const chkFile = document.getElementById("chkFile");
+      const chkFolder = document.getElementById("chkFolder");
+      const fileInputGroup = document.getElementById("fileInputGroup");
+      const folderInputGroup = document.getElementById("folderInputGroup");
+
+      if (mode === "file") {
+        chkFile.checked = true;
+        chkFolder.checked = false;
+        fileInputGroup.classList.remove("hidden");
+        folderInputGroup.classList.add("hidden");
+      } else {
+        chkFile.checked = false;
+        chkFolder.checked = true;
+        fileInputGroup.classList.add("hidden");
+        folderInputGroup.classList.remove("hidden");
+      }
+
+      document.getElementById("file-name").textContent = "No file chosen";
+    }
+
+    // === File/Folder input handler ===
+    document.addEventListener("DOMContentLoaded", () => {
+      const fileInput = document.getElementById("file");
+      const folderInput = document.getElementById("folder");
+      const fileNameDisplay = document.getElementById("file-name");
+
+      fileInput.addEventListener("change", function () {
+        const fileName = this.files.length > 0 ? this.files[0].name : "No file chosen";
+        fileNameDisplay.textContent = fileName;
+      });
+
+      folderInput.addEventListener("change", function () {
+        const fileCount = this.files.length;
+        fileNameDisplay.textContent = fileCount > 0 ? fileCount + " files selected" : "No folder chosen";
+      });
+    });
+
+    // === Upload function ===
+    function upload() {
+      const fileInput = document.getElementById("file");
+      const folderInput = document.getElementById("folder");
+      const typeElement = document.getElementById("type");
+      const progressElement = document.getElementById("progress");
+
+      const updateType = typeElement.value;
+      let files = [];
+
+      if (document.getElementById("chkFolder").checked && folderInput.files.length > 0) {
+        files = Array.from(folderInput.files);
+      } else if (document.getElementById("chkFile").checked && fileInput.files.length > 0) {
+        files = [fileInput.files[0]];
+      } else {
+        alert("Please select a file or folder to upload");
+        return;
+      }
+
+      let totalSize = files.reduce((acc, f) => acc + f.size, 0);
+      let uploaded = 0;
+
+      function uploadFile(index) {
+        if (index >= files.length) {
+          alert("All uploads complete!");
+          progressElement.value = 0;
+          return;
+        }
+
+        const file = files[index];
+        const relativePath = file.webkitRelativePath || file.name;
+
+        let data = new FormData();
+        data.append("file", file, relativePath);
+        data.append("type", updateType);
+
+        let xhr = new XMLHttpRequest();
+
+        xhr.upload.onprogress = function (e) {
+          if (e.lengthComputable) {
+            let percent = ((uploaded + e.loaded) / totalSize) * 100;
+            progressElement.value = percent;
+          }
+        };
+
+        xhr.onload = function () {
+          if (xhr.status === 200) {
+            console.log("Uploaded:", relativePath, xhr.responseText);
+            uploaded += file.size;
+            uploadFile(index + 1);
+          } else {
+            console.error("Upload failed:", xhr.status, xhr.responseText);
+            alert("Upload failed: " + xhr.responseText);
+            progressElement.value = 0;
+          }
+        };
+
+        xhr.onerror = function () {
+          alert("Network error while uploading " + relativePath);
+          progressElement.value = 0;
+        };
+
+        xhr.open("POST", "/" + updateType);
+        xhr.send(data);
+      }
+
+      uploadFile(0);
+    }
+  </script>
 </body>
 </html>

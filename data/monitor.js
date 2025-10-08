@@ -6,6 +6,7 @@ window.addEventListener('load', onload);
 
 function onload(event) {
     initWebSocket();
+    fetchToserver("QPIRI");
 }
 
 function getReadings() {
@@ -58,3 +59,28 @@ function onMessage(event) {
     }
 }
 
+function updateFaults(faults) {
+  const faultDiv = document.getElementById("inverter fault");
+  if (faults.length === 0) {
+    faultDiv.textContent = "OK";
+    faultDiv.style.color = "green";
+  } else {
+    faultDiv.textContent = faults.join(", ");
+    faultDiv.style.color = "red";
+  }
+}
+
+function fetchToserver(message) {
+    console.log(`${message} to Server`);
+    const formdata = new FormData();
+    formdata.append("plain", message);
+    const requestOptions = {
+        method: "POST",
+        body: formdata,
+        redirect: "follow"
+    };
+    fetch("/cmd", requestOptions)
+        .then((response) => response.text())
+        .then((result) => console.log("Respond:", result))
+        .catch((error) => console.error("Error:", error));
+}

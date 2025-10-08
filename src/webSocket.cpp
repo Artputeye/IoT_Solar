@@ -17,16 +17,17 @@ String wsAllDataBase64()
     ///////////////////////Monotor////////////////////////////////
     doc["Apparent Power"] = inv.data.ApparentPower;
     doc["Active Power"] = inv.data.ActivePower;
-    doc["PV Power"] = inv.data.pvCurrent * inv.data.pvVoltage;
     doc["Load Percent"] = inv.data.loadPercent;
-    doc["PV Current"] = inv.data.pvCurrent;
+    doc["PV Power"] = inv.data.pvCurrent * inv.data.pvVoltage;
     doc["PV Voltage"] = inv.data.pvVoltage;
+    doc["PV Current"] = inv.data.pvCurrent;
     doc["Grid Voltage"] = inv.data.gridVoltage;
-    doc["Output Voltage"] = inv.data.outputVoltage;
-    doc["Bus Voltage"] = inv.data.busVoltage;
-    doc["Battery Voltage"] = inv.data.batteryVoltage;
     doc["Grid Frequency"] = inv.data.gridFrequency;
+    doc["Output Voltage"] = inv.data.outputVoltage;
+    doc["Output Current"] = inv.data.outputCurrent;
     doc["Output Frequency"] = inv.data.outputFrequency;
+    doc["Bus Voltage"] = inv.data.busVoltage;
+    doc["Battery Voltage"] = inv.data.batteryVoltage;   
     doc["Temperature"] = inv.data.temp;
     doc["Inverter Status"] = inv.data.InverterStatus;
 
@@ -59,7 +60,10 @@ String wsAllDataBase64()
     doc["Max Charging Time"] = inv.rated.MaxChargingTime;
     doc["Operation Logic"] = inv.rated.OperationLogic;
     doc["Max Discharging Current"] = inv.rated.MaxDischargingCurrent;
+    /////////////////////////////////Alarm////////////////////////////////////
+    doc["Inverter Faults"] = inv.faultList;
 
+    /////////////////////////////////////////////////////////////////////////
     String jsonOut; // serialize JSON
     serializeJson(doc, jsonOut);
     return base64::encode(jsonOut); // encode Base64
@@ -76,6 +80,7 @@ void wsClear()
     doc["PV Current"] = "";
     doc["PV Voltage"] = "";
     doc["Grid Voltage"] = "";
+    doc["Grid Current"] = "";
     doc["Output Voltage"] = "";
     doc["Bus Voltage"] = "";
     doc["Battery Voltage"] = "";
@@ -188,7 +193,7 @@ void wsloop()
     {
         lastTimeMonitor = millis();
         notifyClients(wsAllDataBase64());
-        wsClear();
+        //wsClear();
     }
 
     if (millis() - lastPingTime > pingInterval)

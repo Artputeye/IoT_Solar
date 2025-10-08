@@ -1,67 +1,94 @@
-document.getElementById("file").addEventListener("change", function () {
-  const fileName = this.files.length > 0 ? this.files[0].name : "No file chosen";
-  const fileNameDisplay = document.getElementById("file-name");
-  if (fileNameDisplay) {
-    fileNameDisplay.textContent = fileName;
+// Toggle file/folder input
+function toggleMode(mode) {
+  const fileGroup = document.getElementById("fileInputGroup");
+  const folderGroup = document.getElementById("folderInputGroup");
+
+  if (mode === "file") {
+    fileGroup.classList.remove("hidden");
+    folderGroup.classList.add("hidden");
   } else {
-    console.warn("Element with ID 'file-name' not found. File name will not be displayed.");
+    fileGroup.classList.add("hidden");
+    folderGroup.classList.remove("hidden");
   }
+
+  document.getElementById("file-name").textContent = "No file chosen";
+}
+
+// Show selected file/folder info
+document.addEventListener("DOMContentLoaded", () => {
+  const fileInput = document.getElementById("file");
+  const folderInput = document.getElementById("folder");
+  const display = document.getElementById("file-name");
+
+  function updateDisplay(files) {
+    if (!files || files.length === 0) display.textContent = "No file chosen";
+    else if (files.length === 1) display.textContent = files[0].name;
+    else display.textContent = files.length + " files selected";
+  }
+
+  fileInput.addEventListener("change", () => updateDisplay(fileInput.files));
+  folderInput.addEventListener("change", () => updateDisplay(folderInput.files));
 });
 
+// Upload function
 function upload() {
   const fileInput = document.getElementById("file");
-  const typeElement = document.getElementById("type"); // Element สำหรับเลือกประเภท (select/input)
-  const progressElement = document.getElementById("progress"); // Element สำหรับ progress bar
+  const folderInput = document.getElementById("folder");
+  const type = document.getElementById("type").value;
+  const progress = document.getElementById("progress");
 
-  const file = fileInput.files[0];
-  if (!file) {
-    alert("Please select a file to upload");
+  let files = [];
+  if (document.getElementById("radioFolder").checked && folderInput.files.length > 0) {
+    files = Array.from(folderInput.files);
+  } else if (document.getElementById("radioFile").checked && fileInput.files.length > 0) {
+    files = Array.from(fileInput.files);
+  } else {
+    alert("Please select files or folder to upload");
     return;
   }
 
-  const updateType = typeElement.value; // ดึงค่า 'type' จาก element (เช่น "firmware", "filesystem")
-  // **** เริ่มการสร้าง Data และ XMLHttpRequest ****
-  var Data = new FormData();
-  Data.append("file", file, file.name);
-  Data.append("type", updateType);
+  let totalSize = files.reduce((sum, f) => sum + f.size, 0);
+  let uploaded = 0;
 
-  var xhr = new XMLHttpRequest();
-  xhr.withCredentials = true; // หากเซิร์ฟเวอร์ ESP32 ต้องการ (มักไม่จำเป็นสำหรับ OTA พื้นฐาน)
-  // จัดการความคืบหน้าการอัปโหลด
-  xhr.upload.onprogress = function (e) {
-    if (e.lengthComputable) {
-      if (progressElement) {
-        progressElement.value = (e.loaded / e.total) * 100;
-      }
+  function uploadFile(index) {
+    if (index >= files.length) {
+      alert("All uploads complete!");
+      progress.value = 0;
+      return;
     }
-  };
 
-  xhr.onload = function () {
-    if (xhr.status === 200) {
-      console.log("Server response (onload):", xhr.responseText);
-      // ตรวจสอบข้อความตอบกลับจาก ESP32
-      if (xhr.responseText.trim() === "OK") { // ESP32 ของคุณส่ง "OK" กลับมา
-        alert("Upload complete! Rebooting...");
-        progressElement.value = 0; // รีเซ็ตแถบ progress
+    const file = files[index];
+    const path = file.webkitRelativePath || file.name;
+
+    const formData = new FormData();
+    formData.append("file", file, path);
+    formData.append("type", type);
+
+    const xhr = new XMLHttpRequest();
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable) {
+        progress.value = ((uploaded + e.loaded) / totalSize) * 100;
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        uploaded += file.size;
+        uploadFile(index + 1);
       } else {
-        alert("Upload Server response: " + xhr.responseText);
-        progressElement.value = 0; // รีเซ็ตแถบ progress
+        alert("Upload failed: " + xhr.responseText);
+        progress.value = 0;
       }
-    } else {
-      console.error("Upload failed (onload):", xhr.status, xhr.responseText);
-      alert("Upload HTTP Status: " + xhr.status + " - " + xhr.responseText);
-      progressElement.value = 0; // รีเซ็ตแถบ progress
-    }
-  };
+    };
 
-  xhr.addEventListener("readystatechange", function() {
-    if (this.readyState === 4) { // readyState 4 คือ REQUEST_FINISHED (คำขอเสร็จสมบูรณ์)
-      console.log("Server response (readystatechange):", this.responseText);
-      progressElement.value = 0; // รีเซ็ตแถบ progress
-    }
-  });
-  xhr.open("POST", "/"+ updateType); // ใช้ http:// นำหน้า
-  console.log("POST", "/"+ updateType);
-  xhr.send(Data);
-  progressElement.value = 0; // รีเซ็ตแถบ progress
+    xhr.onerror = () => {
+      alert("Network error while uploading " + path);
+      progress.value = 0;
+    };
+
+    xhr.open("POST", "/" + type);
+    xhr.send(formData);
+  }
+
+  uploadFile(0);
 }

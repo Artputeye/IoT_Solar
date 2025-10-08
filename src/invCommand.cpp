@@ -18,22 +18,25 @@ void invCommand::serialSent()
 
 void invCommand::Response()
 {
-  while (Serial2.available() > 0)
+  unsigned long startTime = millis();
+  const unsigned long timeout = 500; // อยู่ใน loop ไม่เกิน 500ms
+
+  while (Serial2.available() > 0 && millis() - startTime < timeout)
   {
     invData = Serial2.readStringUntil('\n');
     Serial.println("Inverter respond");
     Serial.println(invData);
     len = invData.length();
     Serial.println("len: " + String(len));
+
     if (len == 110)
-    {
       parseQPIGS(invData);
-    }
     if (len == 112)
-    {
       parseQPIRI(invData);
-    }
-    delay(10);
+    if (len == 36)
+      parseQPIWS(invData);
+
+    vTaskDelay(10);
   }
 }
 
@@ -190,9 +193,9 @@ void invCommand::cmd_inv(String data)
     RunMode = false;
     Serial.println("Stop mode");
   }
-  
+
   ////////////////////////////////////////////////////////////////////////////////
-  //wifi configuration
+  // wifi configuration
   if (data == "wifi mode 1")
   {
     wifi_config = true;
@@ -205,7 +208,7 @@ void invCommand::cmd_inv(String data)
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  //ip configuration
+  // ip configuration
   if (data == "ip mode 1")
   {
     ip_config = true;
@@ -380,6 +383,7 @@ void invCommand::parseQPIGS(String response)
       index++;
     }
   }
+  data.outputCurrent = data.ApparentPower / data.gridVoltage;
 }
 
 void invCommand::parseQPIRI(String response)
@@ -460,7 +464,7 @@ void invCommand::parseQPIRI(String response)
         break;
       case 21:
         rated.OutputMode = strtoul(token, NULL, 10);
-        break;     
+        break;
       case 22:
         rated.BatteryReDischargeVoltage = strtoul(token, NULL, 10);
         break;
@@ -472,18 +476,48 @@ void invCommand::parseQPIRI(String response)
         break;
       case 25:
         rated.MaxChargingTime = strtoul(token, NULL, 10);
-        break;     
+        break;
       case 26:
         rated.OperationLogic = strtoul(token, NULL, 10);
         break;
       case 27:
         rated.MaxDischargingCurrent = strtoul(token, NULL, 10);
-        break;                
+        break;
       }
       token = strtok(NULL, " ");
       index++;
     }
   }
+}
+
+void invCommand::parseQPIWS(const String &resp)
+{
+  if (resp.length() < 34)
+  {
+    faultList = "Invalid QPIWS";
+    Serial.println("QPIWS too short: " + resp);
+    Serial.println("faultList: " + faultList);
+    return;
+  }
+  // ดึงเฉพาะ 32 บิต (index 1 ถึง 32)
+  String bits = resp.substring(1, 33);
+  faultList = "";
+  for (int i = 0; i < 32; i++)
+  {
+    if (bits[i] == '1' && strncmp(faultNames[i], "reserved", 8) != 0)
+    {
+      if (faultList.length())
+        faultList += ", ";
+      faultList += faultNames[i];
+    }
+  }
+  if (!faultList.length())
+  {
+    faultList = "Normal";
+  }
+  // Serial print เพื่อตรวจสอบ
+  Serial.println("QPIWS Response: " + resp);
+  Serial.println("Parsed Fault List: " + faultList);
 }
 
 void invCommand::sentinv(String data)
@@ -494,16 +528,23 @@ void invCommand::sentinv(String data)
 void invCommand::help()
 {
   Serial.println("*********************** command ***********************");
-  Serial.println("QPIGS Device general status parameters inquiry");
-  Serial.println("QPIRI Device Rating Information inquiry");
-  Serial.println("QFLAG Device flag status inquiry");
-  Serial.println("QPIWS DeviceWarning Status inquiry");
-  Serial.println("QDI The default setting value information");
-  Serial.println("QMOD Device Mode inquiry");
-  Serial.println("grid on");
-  Serial.println("grid off");
+  Serial.println("QPIGS //Device general status parameters inquiry");
+  Serial.println("QPIRI //Device Rating Information inquiry");
+  Serial.println("QFLAG //Device flag status inquiry");
+  Serial.println("QPIWS //DeviceWarning Status inquiry");
+  Serial.println("QDI //The default setting value information");
+  Serial.println("QMOD //Device Mode inquiry");
+  Serial.println("run mode //Sent QPIGS to inverter any 3 second");
+  Serial.println("stop mode //Stop sent QPIGS to inverter any 3 second");
+  Serial.println("wifi mode 1 //Access Point Mode");
+  Serial.println("wifi mode 0 //Station Moe");
+  Serial.println("ip mode 1 //Staic IP");
+  Serial.println("ip mode 0 //DHCP");
   Serial.println("print on");
   Serial.println("print off");
   Serial.println("test on");
   Serial.println("test off");
+  Serial.println("para res //reset setting");
+  Serial.println("littleFS //read DIR SPIFFS");
+  Serial.println("formatFS //Format SPIFFS");
 }
