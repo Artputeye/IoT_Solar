@@ -1,6 +1,8 @@
-//webHandle.cpp
+// webHandle.cpp
 #include "webHandle.h"
 const char *PARAM_MESSAGE PROGMEM = "plain";
+int gridCutOff;
+int gridStart;
 
 void webHandle()
 {
@@ -44,14 +46,15 @@ void staticRoot()
 {
   // เสิร์ฟทุกไฟล์ใน LittleFS เช่น index.html, info.css, app.js
   server.serveStatic("/", LittleFS, "/")
-        .setDefaultFile("index.html")
-        .setCacheControl("max-age=86400");  // cache 1 วัน (ลดการโหลดซ้ำ)
+      .setDefaultFile("index.html")
+      .setCacheControl("max-age=86400"); // cache 1 วัน (ลดการโหลดซ้ำ)
 
   // สำหรับ path พิเศษ เช่น /set, /ota → map ไปยัง .html โดยตรง
-  const char* pages[] = {"/set", "/ota", "/batt", "/device", "/filelist", "/info", "/monitor", "/network"};
+  const char *pages[] = {"/set", "/ota", "/batt", "/device", "/filelist", "/info", "/monitor", "/network"};
   for (auto &p : pages)
   {
-    server.on(p, HTTP_GET, [p](AsyncWebServerRequest *request) {
+    server.on(p, HTTP_GET, [p](AsyncWebServerRequest *request)
+              {
       String filepath = String(p) + ".html";
       if (LittleFS.exists(filepath))
       {
@@ -61,8 +64,7 @@ void staticRoot()
       else
       {
         request->send(404, "text/plain", "Page not found");
-      }
-    });
+      } });
   }
 }
 
@@ -70,28 +72,37 @@ void staticRoot()
 ///////////////////////////////////// PARAMETER SETTING ////////////////////////////////////
 void JsonSetting() // Control Route
 {
-  server.on("/setting", HTTP_POST, [](AsyncWebServerRequest *request){}, NULL,
-    [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-
+  server.on("/setting", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+            {
       JsonDocument doc;
       DeserializationError error = deserializeJson(doc, data, len);
 
-      if (error) {
-        //Serial.print(F("deserializeJson() failed: "));
-        //Serial.println(error.f_str());
+      if (error)
+      {
         request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
         return;
       }
 
-      String setting = doc["setting"].as<String>();
-      uint16_t value  = doc["value"].as<uint16_t>();
-      inv.valueToinv(setting, value);
+      // ✅ ตรวจสอบ key ที่มีใน JSON ก่อนใช้
+      String setting   = doc["setting"].is<String>()     ? doc["setting"].as<String>()     : "";
+      uint16_t value   = doc["value"].is<uint16_t>()     ? doc["value"].as<uint16_t>()     : 0;
+      gridCutOff   = doc["gridCutOff"].is<int>()     ? doc["gridCutOff"].as<int>()     : -1;
+      gridStart    = doc["gridStart"].is<int>()      ? doc["gridStart"].as<int>()      : -1;
 
-      Serial.printf("📥 Setting: %s = %d\n", setting.c_str(), value);
-      String response;
-      response = "{\"status\":\"ok\",\"setting\":\"" + setting + "\",\"value\":" + String(value) + "}";
-      request->send(200, "application/json", response);
-  });
+      // ✅ แสดงผลและเรียกใช้งานเฉพาะเมื่อมีข้อมูล
+      if (setting != "")
+      {
+        inv.valueToinv(setting, value);
+        Serial.printf("📥 Setting: %s = %d\n", setting.c_str(), value);
+      }
+
+      String response = "{\"status\":\"ok\"";
+      if (setting != "") response += ",\"setting\":\"" + setting + "\",\"value\":" + String(value);
+      if (gridCutOff != -1) response += ",\"gridCutOff\":" + String(gridCutOff);
+      if (gridStart  != -1) response += ",\"gridStart\":"  + String(gridStart);
+      response += "}";
+
+      request->send(200, "application/json", response); });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -179,8 +190,8 @@ void saveSetting() // API: รับ JSON จาก Client แล้วบัน
     }
     file.close();
     request->send(200, "application/json", "{\"status\":\"ok\"}"); });
-    
-    //ESP.restart();
+
+  // ESP.restart();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -325,7 +336,8 @@ void saveNetwork() // API: รับ JSON จาก Client แล้วบัน
 ////////////////////////////////////// NOT FUOND ///////////////////////////////////////////
 void notfoundRoot()
 {
-  server.onNotFound([](AsyncWebServerRequest *request) {
+  server.onNotFound([](AsyncWebServerRequest *request)
+                    {
     String path = request->url();
     Serial.println("404 Not Found: " + path);
 
@@ -339,6 +351,5 @@ void notfoundRoot()
     {
       // ถ้าไม่เจอไฟล์เลย → คืนค่า 404
       request->send(404, "text/plain", "File Not Found\n\nPath: " + path);
-    }
-  });
+    } });
 }

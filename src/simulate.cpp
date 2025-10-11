@@ -19,13 +19,15 @@ void simulateData()
         float batt = 23.3 + (float(i) / 10);
         float power = pvc * pvv;
         float curr = appar / volt; // I=S/V
+        float pf = active / appar;
 
         // Monitor/////////////////////////////////////////////////
 
         inv.data.ApparentPower = appar;
         inv.data.ActivePower = active;
-        inv.data.ActivePower = power;
         inv.data.loadPercent = per;
+        inv.data.powerFactor = pf;
+        inv.data.pvPower = power;
         inv.data.pvCurrent = pvc;
         inv.data.pvVoltage = pvv;
         inv.data.outputVoltage = volt;
@@ -57,6 +59,7 @@ void simulateData()
         OutputFrequency.setValue(fre);
         ApparentPower.setValue(appar);
         ActivePower.setValue(active);
+        PowerFactor.setValue(pf);
         LoadPercent.setValue(per);
         BusVoltage.setValue(vbus);
         Temp.setValue(t);

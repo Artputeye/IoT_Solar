@@ -11,14 +11,15 @@
 #include <ESPAsyncWebServer.h>
 #include <Update.h>
 #include <ESPmDNS.h>
-//#include <WiFiManager.h>
-//#include <WiFiMulti.h>
+// #include <WiFiManager.h>
+// #include <WiFiMulti.h>
 #include <ArduinoJson.h>
 #include <ArduinoHA.h>
 #include "esp_netif.h"
 #include "esp_wifi.h"
 #include <esp_task_wdt.h>
 #include "base64.h"
+#include <time.h>
 
 #include <FS.h>
 #ifdef ESP32
@@ -35,6 +36,7 @@
 #include "littleFS_data.h"
 #include "iotHA.h"
 #include "simulate.h"
+#include "gridOperation.h"
 
 /////////////////////////////////////////////////////////////////////////
 #define WDT_TIMEOUT 120
@@ -45,14 +47,14 @@
 // declare global object out source cpp
 // extern class object;
 extern AsyncWebServer server;
-//extern WiFiManager wm;
+// extern WiFiManager wm;
 
 extern WiFiClient client;
 extern HADevice device;
 extern HAMqtt mqtt;
 extern HASwitch grid;
 
-//extern WiFiMulti Multi;
+// extern WiFiMulti Multi;
 
 extern invCommand inv;
 
@@ -83,6 +85,12 @@ extern char user[10];
 extern char pass[10];
 
 extern uint8_t Mac[6];
+
+extern const char *ntpServer;
+extern const long gmtOffset_sec;
+extern const int daylightOffset_sec;
+
+extern int dateNow ; // ตัวแปรเก็บวันที่แบบ int
 
 extern float power_check;
 extern const char *targetDirectory;

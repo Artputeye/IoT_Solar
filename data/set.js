@@ -2,14 +2,12 @@ document.addEventListener("DOMContentLoaded", function () {
   fetch('/getsetting')
     .then(response => response.json())
     .then(data => {
-      //console.log(data);
+      // ✅ โหลดค่ากลับให้ select
       for (const key in data) {
         const selectElement = document.getElementById(key);
         if (selectElement && selectElement.tagName === "SELECT") {
           const valueToSelect = data[key];
-          console.log(data);
           for (const option of selectElement.options) {
-            console.log(key);
             if (option.value.toLowerCase() === valueToSelect.toLowerCase()) {
               selectElement.value = option.value;
               break;
@@ -17,11 +15,30 @@ document.addEventListener("DOMContentLoaded", function () {
           }
         }
       }
+
+      // ✅ โหลดค่ากลับให้ checkbox
       for (const key in data) {
         const checkbox = document.getElementById(key);
-        if (checkbox) {
+        if (checkbox && checkbox.type === "checkbox") {
           checkbox.checked = data[key] === "1";
         }
+      }
+
+      // ✅ โหลดค่ากลับให้ input number (gridCutOff, gridStart)
+      for (const key in data) {
+        const numberInput = document.getElementById(key);
+        if (numberInput && numberInput.type === "number") {
+          numberInput.value = data[key];
+        }
+      }
+
+      // ✅ เพิ่มส่วนตรวจสอบ Grid Tie Auto
+      const gridTieAuto = document.getElementById("Grid Tie Auto");
+      const gridTieOp = document.getElementById("Grid Tie Operation");
+      if (gridTieAuto && gridTieOp) {
+        const autoEnabled = data["Grid Tie Auto"] === "1";
+        gridTieOp.disabled = autoEnabled; // ปิดการใช้งานปุ่มเมื่อ auto = 1
+        gridTieOp.parentElement.classList.toggle("disabled", autoEnabled);
       }
     })
     .catch(error => {
@@ -32,7 +49,16 @@ document.addEventListener("DOMContentLoaded", function () {
 function toggleSetting(checkbox, settingName) {
   const status = checkbox.checked ? 1 : 0;
   console.log(`${settingName} ${status}`);
-  settingToserver(settingName, status);  // ✅ ส่งชื่อกับค่าแยกกัน
+
+  // ✅ ถ้าเป็น Grid Tie Auto → ปิด/เปิดการใช้งานปุ่ม Grid Tie Operation
+  if (settingName === "Grid Tie Auto") {
+    const gridTieOp = document.getElementById("Grid Tie Operation");
+    if (gridTieOp) {
+      gridTieOp.disabled = checkbox.checked;
+      gridTieOp.parentElement.classList.toggle("disabled", checkbox.checked);
+    }
+  }
+  settingToserver(settingName, status);
 }
 
 // ส่งค่า Toggle ไปยังเซิร์ฟเวอร์
@@ -79,10 +105,10 @@ function sendSetting(data) {
     .catch(error => {
       console.error('❌ Error:', error);
     });
-    submitAllSettings();
+  submitAllSettings();
 }
 
-function submitAllSettings() { 
+function submitAllSettings() {
   const data = {};
 
   // เก็บค่าจาก toggle switch ทั้งหมด
@@ -90,6 +116,14 @@ function submitAllSettings() {
     const id = input.id;
     if (id) {
       data[id] = input.checked ? "1" : "0";
+    }
+  });
+
+  // เก็บค่าจาก input ทั้งหมด
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+    const id = input.id;
+    if (id) {
+      data[id] = input.value;
     }
   });
 
@@ -134,7 +168,39 @@ function restoreDefaults() {
   });
 
   // ส่งค่าที่รีเซ็ตไปยัง ESP32
-  settingToserver("RestoreDefaults", 1) 
+  settingToserver("RestoreDefaults", 1)
   submitAllSettings();
   alert("✅ Settings restored to defaults.");
+}
+
+
+function GridCutToServer() {
+  const gridCutOff = parseInt(document.getElementById('gridCutOff').value);
+  const gridStart = parseInt(document.getElementById('gridStart').value);
+
+  // ✅ ตรวจสอบว่าค่าถูกต้องและอยู่ในช่วง 1–31
+  if (isNaN(gridCutOff) || isNaN(gridStart)) {
+    alert('กรุณากรอกค่าทั้งสองช่อง');
+    return;
+  }
+  if (gridCutOff < 1 || gridCutOff > 31 || gridStart < 1 || gridStart > 31) {
+    alert('ค่าต้องอยู่ระหว่าง 1 ถึง 31 เท่านั้น');
+    return;
+  }
+  console.log(`📤 ส่งค่าไป server: gridCutOff=${gridCutOff}, gridStart=${gridStart}`);
+  fetch('/setting', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ gridCutOff, gridStart })
+  })
+    .then(res => res.text())
+    .then(result => {
+      console.log('✅ Respond:', result);
+      alert('บันทึกค่าเรียบร้อย');
+    })
+    .catch(err => {
+      console.error('❌ Error:', err);
+      alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+    });
+      submitAllSettings();
 }

@@ -1,159 +1,75 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>OTA Upload</title>
-  <style>
-    .hidden { display: none; }
-    .file-input-group { margin: 10px 0; }
-  </style>
-</head>
-<body>
-  <h1>OTA Firmware / LittleFS</h1>
+<style>
+  .card-horizontal {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 16px 20px;
+    max-width: 500px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
 
-  <label for="type">OTA Mode:</label>
-  <select id="type">
-    <option value="otafirmware">Firmware</option>
-    <option value="otalittlefs">LittleFS</option>
-  </select>
+  .card-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
 
-  <div>
-    <label>
-      <input type="checkbox" id="chkFile" checked onchange="toggleMode('file')"> File
-    </label>
-    <label>
-      <input type="checkbox" id="chkFolder" onchange="toggleMode('folder')"> Folder
-    </label>
+  .card-vertical span {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+  }
+
+  .grid-control {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  .grid-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+  }
+
+  .button-set {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s ease;
+  }
+
+  .button-set:hover {
+    background-color: #0056b3;
+  }
+
+  .button-set:active {
+    transform: scale(0.98);
+  }
+</style>
+
+<div class="card-horizontal">
+  <div class="card-vertical">
+    <span>Grid Cutoff</span>
+    <input class="grid-control" type="number" id="gridCutoff" required />
   </div>
 
-  <!-- input สำหรับไฟล์ -->
-  <div id="fileInputGroup" class="file-input-group">
-    <label class="custom-file-upload">
-      <input type="file" id="file" />
-      Select File
-    </label>
+  <div class="card-vertical">
+    <span>Grid Start</span>
+    <input class="grid-control" type="number" id="gridStart" required />
   </div>
 
-  <!-- input สำหรับโฟลเดอร์ -->
-  <div id="folderInputGroup" class="file-input-group hidden">
-    <label class="custom-file-upload">
-      <input type="file" id="folder" webkitdirectory multiple />
-      Select Folder
-    </label>
-  </div>
-
-  <span id="file-name" class="file-name">No file chosen</span>
-  <br>
-  <button onclick="upload()">Upload</button>
-  <progress id="progress" max="100" value="0"></progress>
-
-  <script>
-    function toggleMode(mode) {
-      const chkFile = document.getElementById("chkFile");
-      const chkFolder = document.getElementById("chkFolder");
-      const fileInputGroup = document.getElementById("fileInputGroup");
-      const folderInputGroup = document.getElementById("folderInputGroup");
-
-      if (mode === "file") {
-        chkFile.checked = true;
-        chkFolder.checked = false;
-        fileInputGroup.classList.remove("hidden");
-        folderInputGroup.classList.add("hidden");
-      } else {
-        chkFile.checked = false;
-        chkFolder.checked = true;
-        fileInputGroup.classList.add("hidden");
-        folderInputGroup.classList.remove("hidden");
-      }
-
-      document.getElementById("file-name").textContent = "No file chosen";
-    }
-
-    // === File/Folder input handler ===
-    document.addEventListener("DOMContentLoaded", () => {
-      const fileInput = document.getElementById("file");
-      const folderInput = document.getElementById("folder");
-      const fileNameDisplay = document.getElementById("file-name");
-
-      fileInput.addEventListener("change", function () {
-        const fileName = this.files.length > 0 ? this.files[0].name : "No file chosen";
-        fileNameDisplay.textContent = fileName;
-      });
-
-      folderInput.addEventListener("change", function () {
-        const fileCount = this.files.length;
-        fileNameDisplay.textContent = fileCount > 0 ? fileCount + " files selected" : "No folder chosen";
-      });
-    });
-
-    // === Upload function ===
-    function upload() {
-      const fileInput = document.getElementById("file");
-      const folderInput = document.getElementById("folder");
-      const typeElement = document.getElementById("type");
-      const progressElement = document.getElementById("progress");
-
-      const updateType = typeElement.value;
-      let files = [];
-
-      if (document.getElementById("chkFolder").checked && folderInput.files.length > 0) {
-        files = Array.from(folderInput.files);
-      } else if (document.getElementById("chkFile").checked && fileInput.files.length > 0) {
-        files = [fileInput.files[0]];
-      } else {
-        alert("Please select a file or folder to upload");
-        return;
-      }
-
-      let totalSize = files.reduce((acc, f) => acc + f.size, 0);
-      let uploaded = 0;
-
-      function uploadFile(index) {
-        if (index >= files.length) {
-          alert("All uploads complete!");
-          progressElement.value = 0;
-          return;
-        }
-
-        const file = files[index];
-        const relativePath = file.webkitRelativePath || file.name;
-
-        let data = new FormData();
-        data.append("file", file, relativePath);
-        data.append("type", updateType);
-
-        let xhr = new XMLHttpRequest();
-
-        xhr.upload.onprogress = function (e) {
-          if (e.lengthComputable) {
-            let percent = ((uploaded + e.loaded) / totalSize) * 100;
-            progressElement.value = percent;
-          }
-        };
-
-        xhr.onload = function () {
-          if (xhr.status === 200) {
-            console.log("Uploaded:", relativePath, xhr.responseText);
-            uploaded += file.size;
-            uploadFile(index + 1);
-          } else {
-            console.error("Upload failed:", xhr.status, xhr.responseText);
-            alert("Upload failed: " + xhr.responseText);
-            progressElement.value = 0;
-          }
-        };
-
-        xhr.onerror = function () {
-          alert("Network error while uploading " + relativePath);
-          progressElement.value = 0;
-        };
-
-        xhr.open("POST", "/" + updateType);
-        xhr.send(data);
-      }
-
-      uploadFile(0);
-    }
-  </script>
-</body>
-</html>
+  <button class="button-set" type="button" onclick="sendSetting(this)">Set</button>
+</div>

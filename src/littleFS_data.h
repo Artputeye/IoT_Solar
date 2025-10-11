@@ -4,5 +4,9 @@
 
 void fileManage();
 void listAllFilesAndFolders(const char *dirname);
- 
+void saveEnergyToFile();
+void loadEnergyFromFile();
+void clearEnergyFile();
+void handleEnergyStorage();
+
 #endif

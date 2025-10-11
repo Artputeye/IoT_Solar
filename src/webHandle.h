@@ -1,6 +1,8 @@
 #ifndef WEB_HANDLE_H
 #define WEB_HANDLE_H
 #include "globals.h"
+extern int gridCutOff;
+extern int gridStart;
 
 void webHandle();
 String getContentType(String filename);
