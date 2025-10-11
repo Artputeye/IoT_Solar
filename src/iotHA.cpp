@@ -28,6 +28,7 @@ HASensorNumber OutputCurrent("OutputCurrent", HASensorNumber::PrecisionP1);
 HASensorNumber OutputFrequency("OutputFrequency", HASensorNumber::PrecisionP1);
 HASensorNumber ApparentPower("ApparentPower");
 HASensorNumber ActivePower("ActivePower");
+HASensorNumber PowerFactor("PowerFactor", HASensorNumber::PrecisionP2);
 HASensorNumber LoadPercent("LoadPercent");
 HASensorNumber BusVoltage("BusVoltage");
 HASensorNumber Temp("Temp");
@@ -48,12 +49,12 @@ void iotHArun()
         ApparentPower.setValue(inv.data.ApparentPower);
         ActivePower.setValue(inv.data.ActivePower);
         LoadPercent.setValue(inv.data.loadPercent);
+        PowerFactor.setValue(inv.data.powerFactor);
         BusVoltage.setValue(inv.data.busVoltage);
         Temp.setValue(inv.data.temp);
         pvCurrent.setValue(inv.data.pvCurrent);
         pvVoltage.setValue(inv.data.pvVoltage);
-        power = inv.data.pvCurrent * inv.data.pvVoltage;
-        pvPower.setValue(power);
+        pvPower.setValue(inv.data.pvPower);
     }
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -172,6 +173,10 @@ void iotHAsetup()
     LoadPercent.setName("Load");
     LoadPercent.setIcon("mdi:transmission-tower");
     LoadPercent.setUnitOfMeasurement("%");
+
+    PowerFactor.setName("Power Factor");
+    PowerFactor.setIcon("mdi:alpha-p-circle");
+    PowerFactor.setUnitOfMeasurement("θ");
 
     BusVoltage.setName("Bus Voltage");
     BusVoltage.setIcon("mdi:flash-triangle");

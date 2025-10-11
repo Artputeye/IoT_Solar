@@ -23,6 +23,7 @@ extern HASensorNumber OutputCurrent;
 extern HASensorNumber OutputFrequency;
 extern HASensorNumber ApparentPower;
 extern HASensorNumber ActivePower;
+extern HASensorNumber PowerFactor;
 extern HASensorNumber LoadPercent;
 extern HASensorNumber BusVoltage;
 extern HASensorNumber Temp;

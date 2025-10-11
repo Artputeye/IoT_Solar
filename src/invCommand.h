@@ -23,6 +23,8 @@ public:
   bool RunMode = true; // auto mode //main.cpp, wifiConfig.cpp
   bool wifi_config = false;
   bool ip_config = false;
+  bool energy = false;
+  bool gridOpr = false;
 
   std::map<String, uint16_t> InvAddress = {
       {"Buzzer", 0x138A},
@@ -84,6 +86,8 @@ public:
     uint32_t unknow19;       // 19
     uint32_t unknow20;       // 20
     float outputCurrent;       // 21
+    float powerFactor;        // 22
+    uint32_t pvPower;         // 23
   } data;
 
   struct QPIRIvals_t // Device Rating Information inquiry

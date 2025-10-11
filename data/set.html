@@ -103,7 +103,31 @@
         </form>
       </div>
 
+      <!--.//grid cutt ott////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+      <div class="card-horizontal">
+        <div class="grid-input">
+          <div class="card-vertical">
+            <span class="cutoff-name">Grid Cutoff</span>
+            <input class="grid-control" type="number" id="gridCutOff" min="1" max="31" required />
+          </div>
+
+          <div class="card-vertical">
+            <span class="cutoff-name">Grid Start</span>
+            <input class="grid-control" type="number" id="gridStart" min="1" max="31" required />
+          </div>
+        </div>
+
+        <button class="button-set" type="button" onclick="GridCutToServer()">Set</button>
+      </div>
+
       <!--.//toggle switch////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////.-->
+      <div class="toggle-row">
+        <span class="toggle-text">Grid Tie Auto</span>
+        <label class="switch">
+          <input type="checkbox" id="Grid Tie Auto" onchange="toggleSetting(this,'Grid Tie Auto')" />
+          <span class="slider"></span>
+        </label>
+      </div>
 
       <div class="toggle-row">
         <span class="toggle-text">Grid Tie Operation</span>
@@ -205,7 +229,9 @@
       </div>
 
       <div class="card-middle">
-        <button class="button-save" onclick="restoreDefaults()">Restore Defaults</button>
+        <button class="button-save" onclick="restoreDefaults()">
+          Restore Defaults
+        </button>
       </div>
     </div>
     <div class="blockdummy"></div>

@@ -9,20 +9,23 @@ float lastPower = 0.0;
 unsigned long lastChangeTime = 0;            // เวลาเปลี่ยนแปลงล่าสุด (ms)
 const unsigned long timeout = 5 * 60 * 1000; // 5 นาที (300,000 ms)
 
-void ledIndicator(unsigned long onTime, unsigned long offTime)
+void wifi_config()
 {
-    static bool ledState = false;
-    static unsigned long previousMillis = 0;
-
-    unsigned long currentMillis = millis();
-    unsigned long interval = ledState ? onTime : offTime;
-
-    if (currentMillis - previousMillis >= interval)
+    readNetwork();
+    delay(500);
+    if (wifimode == 1)
     {
-        previousMillis = currentMillis;
-        ledState = !ledState;
-        digitalWrite(LED, ledState ? HIGH : LOW);
+        // Station mode: ต้อง config IP ก่อน connect
+        setupIPConfig();
+        setupWiFiMode();
+        timeServer();
     }
+    else
+    {
+        // AP mode: ทำตามปกติ
+        setupWiFiMode();
+    }
+    lastChangeTime = millis();
 }
 
 void mac_config()
@@ -33,8 +36,6 @@ void mac_config()
 
     // กำหนด Unique ID ให้ HADevice (ใช้ MAC โดยตรง)
     device.setUniqueId(mac, sizeof(mac));
-
-    // Debug Print
 
     char macStr[18];
     snprintf(macStr, sizeof(macStr),
@@ -56,24 +57,6 @@ void mac_config()
     Serial.println(macStr);
     Serial.println("UniqueId assigned to HADevice (using raw bytes)");
     Serial.println("================================");
-}
-
-void wifi_config()
-{
-    readNetwork();
-    delay(500);
-    if (wifimode == 1)
-    {
-        // Station mode: ต้อง config IP ก่อน connect
-        setupIPConfig();
-        setupWiFiMode();
-    }
-    else
-    {
-        // AP mode: ทำตามปกติ
-        setupWiFiMode();
-    }
-    lastChangeTime = millis();
 }
 
 void restart()
@@ -108,12 +91,12 @@ void restart()
     if (inv.wifi_config)
     {
         setupWiFiMode();
-        Serial.println("Debug inv.wifi_config" + String(inv.wifi_config));
+        Serial.println("inv.wifi_config" + String(inv.wifi_config));
     }
     if (inv.ip_config)
     {
         setupWiFiMode();
-        Serial.println("Debug inv.ip_config" + String(inv.ip_config));
+        Serial.println("inv.ip_config" + String(inv.ip_config));
     }
 }
 
@@ -262,7 +245,7 @@ void setupWiFiMode()
     }
 
     delay(1000);
-    Serial.println("Debug wifimode" + String(wifimode));
+    //Serial.println("wifimode" + String(wifimode));
 }
 
 // ฟังก์ชันตั้งค่า IP Config
@@ -287,7 +270,7 @@ void setupIPConfig()
     }
 
     delay(500);
-    Serial.println("Debug ipconfig" + String(ipconfig));
+    // Serial.println("Debug ipconfig" + String(ipconfig));
 }
 
 IPAddress parseIP(const char *ipStr)
@@ -334,5 +317,33 @@ void showAPClients()
         {
             Serial.println("❌ Failed to get AP sta list");
         }
+    }
+}
+
+void ledStats()
+{
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        ledIndicator(100, 2000);
+    }
+    else
+    {
+        ledIndicator(300, 300);
+    }
+}
+
+void ledIndicator(unsigned long onTime, unsigned long offTime)
+{
+    static bool ledState = false;
+    static unsigned long previousMillis = 0;
+
+    unsigned long currentMillis = millis();
+    unsigned long interval = ledState ? onTime : offTime;
+
+    if (currentMillis - previousMillis >= interval)
+    {
+        previousMillis = currentMillis;
+        ledState = !ledState;
+        digitalWrite(LED, ledState ? HIGH : LOW);
     }
 }

@@ -81,6 +81,19 @@ size_t invCommand::buildModbusWrite(uint8_t slaveID, uint16_t regAddr, uint16_t 
 
 void invCommand::valueToinv(String Name, uint16_t val)
 {
+  if (Name == "Grid Tie Auto" && val == 1)
+  {
+    gridOpr = true;
+    Serial.println("Grid Tie Auto ON");
+    return;
+  }
+  if (Name == "Grid Tie Auto" && val == 0)
+  {
+    gridOpr = false;
+    Serial.println("Grid Tie Auto OFF");
+    return;
+  }
+
   uint8_t frame[8];
   auto it = InvAddress.find(Name); // ตรวจสอบชื่อ register
   if (it == InvAddress.end())
@@ -179,6 +192,16 @@ void invCommand::cmd_inv(String data)
     Serial.println("ESP Reset");
     delay(5000);
     ESP.restart();
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////
+  // energy Reset
+
+  if (data == "energy reset")
+  {
+    energy = true;
+    Serial.println("Energy Reset");
+    delay(000);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -384,6 +407,10 @@ void invCommand::parseQPIGS(String response)
     }
   }
   data.outputCurrent = data.ApparentPower / data.gridVoltage;
+  data.outputCurrent = roundf(data.outputCurrent * 10) / 10.0;
+  data.powerFactor = (float)data.ActivePower / (float)data.ApparentPower;
+  data.powerFactor = roundf(data.powerFactor * 100) / 100.0;
+  data.pvPower = data.pvCurrent * data.pvVoltage;
 }
 
 void invCommand::parseQPIRI(String response)

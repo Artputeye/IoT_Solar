@@ -15,19 +15,22 @@ String wsAllDataBase64()
     doc["Inverter"] = wsInverter;
 
     ///////////////////////Monotor////////////////////////////////
-    doc["Apparent Power"] = inv.data.ApparentPower;
-    doc["Active Power"] = inv.data.ActivePower;
     doc["Load Percent"] = inv.data.loadPercent;
-    doc["PV Power"] = inv.data.pvCurrent * inv.data.pvVoltage;
+    doc["Energy Daily"] = energy_kWh;
+    doc["Grid Power"] = gridPower;
+    doc["Output Apparent Power"] = inv.data.ApparentPower;
+    doc["Output Active Power"] = inv.data.ActivePower;
+    doc["Output Voltage"] = inv.data.outputVoltage;
+    doc["Output Current"] = inv.data.outputCurrent;
+    doc["Output Frequency"] = inv.data.outputFrequency;
+    doc["Power Factor"] = inv.data.powerFactor;
+    doc["PV Power"] = inv.data.pvPower;
     doc["PV Voltage"] = inv.data.pvVoltage;
     doc["PV Current"] = inv.data.pvCurrent;
     doc["Grid Voltage"] = inv.data.gridVoltage;
     doc["Grid Frequency"] = inv.data.gridFrequency;
-    doc["Output Voltage"] = inv.data.outputVoltage;
-    doc["Output Current"] = inv.data.outputCurrent;
-    doc["Output Frequency"] = inv.data.outputFrequency;
     doc["Bus Voltage"] = inv.data.busVoltage;
-    doc["Battery Voltage"] = inv.data.batteryVoltage;   
+    doc["Battery Voltage"] = inv.data.batteryVoltage;
     doc["Temperature"] = inv.data.temp;
     doc["Inverter Status"] = inv.data.InverterStatus;
 
@@ -73,19 +76,21 @@ void wsClear()
 {
     JsonDocument doc;
     ///////////////////////Monitor////////////////////////////////
+    doc["Load Percent"] = "";
+    doc["Energy Daily"] = "";
     doc["Apparent Power"] = "";
     doc["Active Power"] = "";
-    doc["PV Power"] = "";
-    doc["Load Percent"] = "";
-    doc["PV Current"] = "";
-    doc["PV Voltage"] = "";
-    doc["Grid Voltage"] = "";
-    doc["Grid Current"] = "";
     doc["Output Voltage"] = "";
+    doc["Output Current"] = "";
+    doc["Output Frequency"] = "";
+    doc["Power Factor"] = "";
+    doc["PV Power"] = "";
+    doc["PV Voltage"] = "";
+    doc["PV Current"] = "";
+    doc["Grid Voltage"] = "";
+    doc["Grid Frequency"] = "";
     doc["Bus Voltage"] = "";
     doc["Battery Voltage"] = "";
-    doc["Grid Frequency"] = "";
-    doc["Output Frequency"] = "";
     doc["Temperature"] = "";
     doc["Inverter Status"] = "";
 
@@ -193,7 +198,7 @@ void wsloop()
     {
         lastTimeMonitor = millis();
         notifyClients(wsAllDataBase64());
-        //wsClear();
+        // wsClear();
     }
 
     if (millis() - lastPingTime > pingInterval)

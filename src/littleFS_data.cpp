@@ -1,5 +1,8 @@
 #include "littleFS_data.h"
 const char *targetDirectory = "/";
+String energyFile = "/energy.json";
+unsigned long lastSaveTime = 0;
+const unsigned long saveInterval = 1UL * 60UL * 1000UL; // 15 นาที
 
 void fileManage()
 {
@@ -13,6 +16,12 @@ void fileManage()
   {
     LittleFS.format();
     inv.format = false;
+  }
+
+    if (inv.energy)
+  {
+    clearEnergyFile();
+    inv.energy = false;
   }
 }
 
@@ -54,4 +63,103 @@ void listAllFilesAndFolders(const char *dirname)
         }
         file = root.openNextFile();
     }
+}
+
+// ======================================================
+// 🔹 บันทึกค่า energy_kWh ลงใน LittleFS
+// ======================================================
+void saveEnergyToFile()
+{
+  JsonDocument doc;
+  doc["energy_kWh"] = energy_kWh;
+
+  File file = LittleFS.open(energyFile, "w");
+  if (!file)
+  {
+    Serial.println("❌ Failed to open file for writing");
+    return;
+  }
+
+  serializeJson(doc, file);
+  file.close();
+
+  Serial.printf("💾 Saved energy_kWh: %.4f kWh to %s\n", energy_kWh, energyFile.c_str());
+}
+
+// ======================================================
+// 🔹 โหลดค่า energy_kWh จาก LittleFS (ตอนเริ่มต้น)
+// ======================================================
+void loadEnergyFromFile()
+{
+  if (!LittleFS.exists(energyFile))
+  {
+    Serial.println("⚠️ No previous energy file found");
+    return;
+  }
+
+  File file = LittleFS.open(energyFile, "r");
+  if (!file)
+  {
+    Serial.println("❌ Failed to open energy file for reading");
+    return;
+  }
+
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, file);
+  if (error)
+  {
+    Serial.println("❌ Failed to parse energy.json");
+    file.close();
+    return;
+  }
+
+  energy_kWh = doc["energy_kWh"].as<float>();
+  file.close();
+
+  Serial.printf("✅ Loaded previous energy_kWh: %.4f kWh\n", energy_kWh);
+}
+
+
+// ======================================================
+// 🔹 ลบไฟล์ energy.json (ใช้ตอน 18:00)
+// ======================================================
+void clearEnergyFile()
+{
+  if (LittleFS.exists(energyFile))
+  {
+    energy_kWh = 0.0;
+    saveEnergyToFile();
+    Serial.println("🧹 Cleared energy.json file");
+  }
+}
+
+// ======================================================
+// 🔹 ตรวจเวลาทุก loop — บันทึก / ลบไฟล์ / โหลดเวลา
+// ======================================================
+void handleEnergyStorage()
+{
+  // อัปเดตเวลา
+  if (!getLocalTime(&timeinfo))
+  {
+    Serial.println("⚠️ Failed to obtain time");
+    return;
+  }
+
+  unsigned long currentMillis = millis();
+
+  // ✅ 1. บันทึกทุก 15 นาที
+  if (currentMillis - lastSaveTime >= saveInterval)
+  {
+    lastSaveTime = currentMillis;
+    saveEnergyToFile();
+  }
+
+  // ✅ 2. เคลียร์ไฟล์ตอน 18:00:00
+  if (timeinfo.tm_hour == 18 && timeinfo.tm_min == 0 && timeinfo.tm_sec == 0)
+  {
+    clearEnergyFile();
+    energy_kWh = 0.0;
+    saveEnergyToFile(); // เขียนไฟล์ใหม่เป็น 0
+    delay(1000);
+  }
 }

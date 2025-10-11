@@ -5,7 +5,7 @@
   --theme1: #3b82f6;
   --theme2: #008184;
   --theme3: #24c522;
-  --theme4:#008184;
+  --theme4: #008184;
   --blockh: 80px;
   --blockv: 140px;
   --blockw: 90px;
@@ -123,6 +123,15 @@ p.namesub {
   height: 0;
 }
 
+.switch input:disabled + .slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .slider {
   position: absolute;
   cursor: pointer;
@@ -197,7 +206,7 @@ input:checked+.slider:before {
   font-size: 16px;
   gap: 10px;
   height: 35px;
-  justify-content: center;
+  justify-content: space-between;
 }
 
 .text-input {
@@ -262,16 +271,26 @@ select {
   /* เงาเข้มขึ้นเมื่อ hover */
 }
 
-input[type="number"] {
-  padding: 5px;
+.input-batt {
+  padding: 0px 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
+  max-width: 100%;
   flex: 1;
 }
 
-input[type="number"] {
+/* input[type="number"] {
+  padding: 0px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
   max-width: 100%;
-}
+  /* flex: 1; */
+/* } */
+
+
+/* input[type="number"] {
+  max-width: 100%;
+} */
 
 input[type="text"] {
   padding: 5px;
@@ -303,7 +322,7 @@ input[type="text"] {
 
 }
 
-input[type="password"]{
+input[type="password"] {
   padding: 5px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -326,6 +345,44 @@ button.icon-btn:focus {
   color: red;
   font-size: 12px;
   margin-top: 4px;
-  display: none; /* เริ่มต้นซ่อน */
+  display: none;
+  /* เริ่มต้นซ่อน */
 }
 
+.card-horizontal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #e2e8f0;
+  margin: 5px 0px;
+  border-radius: 12px;
+  padding: 10px 16px;
+  gap: 6px;
+
+}
+
+.card-vertical {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.grid-input {
+  display: flex;
+  align-items: center;
+}
+
+.grid-control {
+  height: 30px;
+  margin: 5px;
+  padding: 0px 10px;
+  width: 100px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.cutoff-name {
+ padding: 0px 5px;
+  width: 130px;
+  margin: 0px 5px;
+}
