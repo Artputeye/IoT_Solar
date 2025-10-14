@@ -2,6 +2,7 @@
 const char *targetDirectory = "/";
 String energyFile = "/energy.json";
 unsigned long lastSaveTime = 0;
+unsigned long lastClearEnergy = 0;
 const unsigned long saveInterval = 1UL * 60UL * 1000UL; // 15 นาที
 
 void fileManage()
@@ -17,52 +18,46 @@ void fileManage()
     LittleFS.format();
     inv.format = false;
   }
-
-    if (inv.energy)
-  {
-    clearEnergyFile();
-    inv.energy = false;
-  }
 }
 
 void listAllFilesAndFolders(const char *dirname)
 {
-    // แสดงรายชื่อไฟล์ทั้งหมดใน LittleFS
-    Serial.println("\nListing files in LittleFS:");
-    Serial.printf("Listing directory: %s\n", dirname);
+  // แสดงรายชื่อไฟล์ทั้งหมดใน LittleFS
+  Serial.println("\nListing files in LittleFS:");
+  Serial.printf("Listing directory: %s\n", dirname);
 
-    File root = LittleFS.open(dirname);
-    if (!root)
-    {
-        Serial.println("Failed to open directory");
-        return;
-    }
-    if (!root.isDirectory())
-    {
-        Serial.println("Not a directory");
-        return;
-    }
+  File root = LittleFS.open(dirname);
+  if (!root)
+  {
+    Serial.println("Failed to open directory");
+    return;
+  }
+  if (!root.isDirectory())
+  {
+    Serial.println("Not a directory");
+    return;
+  }
 
-    File file = root.openNextFile();
-    while (file)
+  File file = root.openNextFile();
+  while (file)
+  {
+    if (file.isDirectory())
     {
-        if (file.isDirectory())
-        {
-            Serial.print("  DIR : ");
-            Serial.println(file.name());
-            // ถ้าต้องการดูไฟล์ใน sub-directory ด้วย ให้เรียกซ้ำ:
-            listAllFilesAndFolders(file.name()); // ระวัง recursive depth ถ้ามี subfolder เยอะ
-        }
-        else
-        {
-            Serial.print("  FILE: ");
-            Serial.print(file.name());
-            Serial.print("\tSIZE: ");
-            Serial.print(file.size());
-            Serial.println(" bytes");
-        }
-        file = root.openNextFile();
+      Serial.print("  DIR : ");
+      Serial.println(file.name());
+      // ถ้าต้องการดูไฟล์ใน sub-directory ด้วย ให้เรียกซ้ำ:
+      listAllFilesAndFolders(file.name()); // ระวัง recursive depth ถ้ามี subfolder เยอะ
     }
+    else
+    {
+      Serial.print("  FILE: ");
+      Serial.print(file.name());
+      Serial.print("\tSIZE: ");
+      Serial.print(file.size());
+      Serial.println(" bytes");
+    }
+    file = root.openNextFile();
+  }
 }
 
 // ======================================================
@@ -119,7 +114,6 @@ void loadEnergyFromFile()
   Serial.printf("✅ Loaded previous energy_kWh: %.4f kWh\n", energy_kWh);
 }
 
-
 // ======================================================
 // 🔹 ลบไฟล์ energy.json (ใช้ตอน 18:00)
 // ======================================================
@@ -154,12 +148,4 @@ void handleEnergyStorage()
     saveEnergyToFile();
   }
 
-  // ✅ 2. เคลียร์ไฟล์ตอน 18:00:00
-  if (timeinfo.tm_hour == 18 && timeinfo.tm_min == 0 && timeinfo.tm_sec == 0)
-  {
-    clearEnergyFile();
-    energy_kWh = 0.0;
-    saveEnergyToFile(); // เขียนไฟล์ใหม่เป็น 0
-    delay(1000);
-  }
 }

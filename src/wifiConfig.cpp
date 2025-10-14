@@ -69,7 +69,7 @@ void restart()
             Serial.println("Lost WiFi connection. Restarting...");
             delay(1000);
             ESP.restart();
-            Serial.println("wifimode " + String(wifimode));
+            //Serial.println("wifimode " + String(wifimode));
         }
     }
     //////////////////////////////////////////////////////////////////////////////////

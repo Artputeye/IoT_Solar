@@ -201,7 +201,7 @@ void invCommand::cmd_inv(String data)
   {
     energy = true;
     Serial.println("Energy Reset");
-    delay(000);
+    delay(1000);
   }
 
   ////////////////////////////////////////////////////////////////////////////////

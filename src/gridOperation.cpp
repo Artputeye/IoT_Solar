@@ -108,36 +108,49 @@ void gridOperation()
     float outputPower = 0.0;
     float pvPower = 0.0;
 
-    if (inv.gridOpr)
+    // ==== ทำงานทุก interval ====
+    unsigned long currentMillis = millis();
+    if (currentMillis - lastGridOpr >= interval)
     {
-        // ==== ทำงานทุก interval ====
-        unsigned long currentMillis = millis();
-        if (currentMillis - lastGridOpr >= interval)
+        lastGridOpr = currentMillis;
+        outputPower = inv.data.ActivePower;
+        pvPower = inv.data.pvPower;
+        gridPower = outputPower - pvPower;
+
+        // ✅ 2. เคลียร์ไฟล์ตอน 18:00:00 - 18:00:10
+        if (timeinfo.tm_hour == 18 && timeinfo.tm_min == 0 && timeinfo.tm_sec >= 0 && timeinfo.tm_sec <= 10)
         {
-            lastGridOpr = currentMillis;
-
-            outputPower = inv.data.ActivePower;
-            pvPower = inv.data.pvPower;
-            gridPower = outputPower - pvPower;
-
-            // คำนวณพลังงานสะสม
-            energy_kWh += (gridPower * (interval / 1000.0)) / 3600000.0; // Wh → kWh
-
-            // Serial.printf("Grid Power: %.2f W | Output: %.2f W | PV: %.2f W | Energy: %.6f kWh\n",
-            //               gridPower, outputPower, pvPower, energy_kWh);
+            clearEnergyFile();
+            energy_kWh = 0.0;
+            inv.energy = true;
+            delay(2000);
         }
-
-        // ✅ ตรวจสอบ/สั่ง Grid ทุก 15 นาที
-        if (currentMillis - lastGridCheck >= gridCheckInterval)
+        if (inv.energy)
         {
-            lastGridCheck = currentMillis;
+            clearEnergyFile();
+            energy_kWh = 0.0;
+            inv.energy = false;
+            ESP.restart();
+            delay(2000);
+        }
+        // คำนวณพลังงานสะสม
+        energy_kWh += (gridPower * interval) / 3600.0; // Wh → kWh
+        // Serial.printf("Grid Power: %.2f W | Output: %.2f W | PV: %.2f W | Energy: %.6f kWh\n",
+        //               gridPower, outputPower, pvPower, energy_kWh);
+    }
 
-            if (timeinfo.tm_mday >= gridCutOff && timeinfo.tm_mday <= gridStart)
-            {
-                inv.valueToinv("GridTieOperation", 0);
-                return;
-            }
+    // ✅ ตรวจสอบ/สั่ง Grid ทุก 15 นาที
+    if (currentMillis - lastGridCheck >= gridCheckInterval)
+    {
+        lastGridCheck = currentMillis;
 
+        if (timeinfo.tm_mday >= gridCutOff && timeinfo.tm_mday <= gridStart)
+        {
+            inv.valueToinv("GridTieOperation", 0); // ปิด Grid
+            return;
+        }
+        if (inv.gridOpr)
+        {
             if (energy_kWh < 1.0)
             {
                 inv.valueToinv("GridTieOperation", 0); // ปิด Grid

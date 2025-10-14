@@ -24,7 +24,7 @@ public:
   bool wifi_config = false;
   bool ip_config = false;
   bool energy = false;
-  bool gridOpr = false;
+  bool gridOpr = true;
 
   std::map<String, uint16_t> InvAddress = {
       {"Buzzer", 0x138A},

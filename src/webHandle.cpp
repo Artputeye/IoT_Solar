@@ -96,6 +96,18 @@ void JsonSetting() // Control Route
         Serial.printf("📥 Setting: %s = %d\n", setting.c_str(), value);
       }
 
+      if (setting == "Grid Tie Auto"&&value==1 )
+      {
+        inv.gridOpr = true;
+        Serial.printf("📥 Grid Tie Auto: %s = %d\n", setting.c_str(), value);
+      }
+
+      if (setting == "Grid Tie Auto"&&value==0 )
+      {
+        inv.gridOpr = false;
+        Serial.printf("📥 Grid Tie Auto: %s = %d\n", setting.c_str(), value);
+      }
+
       String response = "{\"status\":\"ok\"";
       if (setting != "") response += ",\"setting\":\"" + setting + "\",\"value\":" + String(value);
       if (gridCutOff != -1) response += ",\"gridCutOff\":" + String(gridCutOff);
