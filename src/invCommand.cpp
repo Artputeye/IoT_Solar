@@ -187,7 +187,7 @@ void invCommand::cmd_inv(String data)
   /////////////////////////////////////////////////////////////////////////////////
   // ESP Reset
 
-  if (data == "espreset")
+  if (data == "esp reset")
   {
     Serial.println("ESP Reset");
     delay(5000);

@@ -44,6 +44,10 @@ void setup()
   Serial.println("Home Assistant Initialized");
   delay(300);
 
+  // === Load Energy ===  
+  loadEnergyFromFile();
+  Serial.println("Load Energy From FS");
+  delay(300);
   ////////////////////////////////////////////////////////////////////////////
 
   // === mDNS & Web Setup ===

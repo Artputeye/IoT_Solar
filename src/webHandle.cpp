@@ -113,7 +113,6 @@ void JsonSetting() // Control Route
       if (gridCutOff != -1) response += ",\"gridCutOff\":" + String(gridCutOff);
       if (gridStart  != -1) response += ",\"gridStart\":"  + String(gridStart);
       response += "}";
-
       request->send(200, "application/json", response); });
 }
 

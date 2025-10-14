@@ -3,18 +3,26 @@
 struct tm timeinfo;
 float energy_kWh = 0.0;
 float gridPower = 0.0;
-
+//////////////////////////////////////////////////////////////////////////////////
 unsigned long lastQvalue = 0;
 unsigned long lastQrate = 0;
 unsigned long lastRespons = 0;
+unsigned long lastFile = 0;
 unsigned long lastGridOpr = 0;
 unsigned long lastGridCheck = 0;
-
-const unsigned long interval = 1000;            // วัดทุก 1 วินาที
+unsigned long lastEnergy = 0;
+/////////////////////////////////////////////////////////////////////////////////
+const unsigned long qvalInterval = 3000;
+const unsigned long qrateInterval = 10000;
+const unsigned long resInterval = 100;
+const unsigned long fileInterval = 60 * 1000;
+const unsigned long gridOprInterval = 1000;
 const unsigned long gridCheckInterval = 900000; // 15 นาที (15 * 60 * 1000 ms)
+const unsigned long energyInterval = 1000;
+/////////////////////////////////////////////////////////////////////////////////
 bool toggle;
 bool gridState = false;
-
+/////////////////////////////////////////////////////////////////////////////////
 void timeServer()
 {
     if (wifimode == 1)
@@ -23,7 +31,6 @@ void timeServer()
         {
             configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
             timeRefresh();
-            loadEnergyFromFile();
             Serial.println("Syncing time from NTP...");
         }
     }
@@ -62,7 +69,7 @@ void timeRefresh()
 
 void gridRun()
 {
-    if ((millis() - lastQvalue) > 3000) // Question to Inverter
+    if ((millis() - lastQvalue) > qvalInterval) // Question to Inverter
     {
         lastQvalue = millis();
         if (inv.RunMode)
@@ -74,10 +81,9 @@ void gridRun()
         iotHArun();
         simulateData();
     }
-
-    if ((millis() - lastQrate) > 10000) // Question Rate to Inverter
+    if ((millis() - lastQrate) > qrateInterval) // Question Rate to Inverter
     {
-
+        lastQrate = millis();
         if (inv.RunMode)
         {
             if (toggle)
@@ -90,10 +96,8 @@ void gridRun()
             }
         }
         toggle = !toggle;
-        lastQrate = millis();
     }
-
-    if ((millis() - lastRespons) > 100) // Respons from Inverter
+    if ((millis() - lastRespons) > resInterval) // Respons from Inverter
     {
         lastRespons = millis();
         inv.serialSent();
@@ -104,68 +108,63 @@ void gridRun()
 
 void gridOperation()
 {
-    handleEnergyStorage();
+    unsigned long currentMillis = millis();
+    float dt = (currentMillis - lastEnergy) / 1000.0; // หน่วยวินาที
+    lastEnergy = currentMillis;
     float outputPower = 0.0;
     float pvPower = 0.0;
+    outputPower = inv.data.ActivePower;
+    pvPower = inv.data.pvPower;
+    gridPower = outputPower - pvPower;
 
-    // ==== ทำงานทุก interval ====
-    unsigned long currentMillis = millis();
-    if (currentMillis - lastGridOpr >= interval)
+    if (timeinfo.tm_hour == 18 && timeinfo.tm_min == 0 && timeinfo.tm_sec >= 0 && timeinfo.tm_sec <= 10)
     {
-        lastGridOpr = currentMillis;
-        outputPower = inv.data.ActivePower;
-        pvPower = inv.data.pvPower;
-        gridPower = outputPower - pvPower;
-
-        // ✅ 2. เคลียร์ไฟล์ตอน 18:00:00 - 18:00:10
-        if (timeinfo.tm_hour == 18 && timeinfo.tm_min == 0 && timeinfo.tm_sec >= 0 && timeinfo.tm_sec <= 10)
-        {
-            clearEnergyFile();
-            energy_kWh = 0.0;
-            inv.energy = true;
-            delay(2000);
-        }
-        if (inv.energy)
-        {
-            clearEnergyFile();
-            energy_kWh = 0.0;
-            inv.energy = false;
-            ESP.restart();
-            delay(2000);
-        }
-        // คำนวณพลังงานสะสม
-        energy_kWh += (gridPower * interval) / 3600.0; // Wh → kWh
-        // Serial.printf("Grid Power: %.2f W | Output: %.2f W | PV: %.2f W | Energy: %.6f kWh\n",
-        //               gridPower, outputPower, pvPower, energy_kWh);
+        clearEnergyFile();
+        energy_kWh = 0.0;
+        inv.energy = true;
+        delay(100);
+    }
+    if (inv.energy)
+    {
+        clearEnergyFile();
+        energy_kWh = 0.0;
+        inv.energy = false;
+        delay(100);
     }
 
-    // ✅ ตรวจสอบ/สั่ง Grid ทุก 15 นาที
+    energy_kWh += ((gridPower * dt) / 3600000);
+    energy_kWh = roundf(energy_kWh * 1000) / 1000.000;
+
+    if ((millis() - lastFile) > fileInterval) // Respons from Inverter
+    {
+        lastFile = millis();
+        saveEnergyToFile();
+        delay(100);
+    }
     if (currentMillis - lastGridCheck >= gridCheckInterval)
     {
         lastGridCheck = currentMillis;
-
         if (timeinfo.tm_mday >= gridCutOff && timeinfo.tm_mday <= gridStart)
         {
-            inv.valueToinv("GridTieOperation", 0); // ปิด Grid
+            inv.valueToinv("GridTieOperation", 0); 
             return;
         }
         if (inv.gridOpr)
         {
             if (energy_kWh < 1.0)
             {
-                inv.valueToinv("GridTieOperation", 0); // ปิด Grid
+                inv.valueToinv("GridTieOperation", 0); 
                 gridState = false;
                 Serial.println("🔴 ส่งคำสั่ง: Grid OFF (energy < 1.0 kWh)");
             }
             else if (energy_kWh > 2.0)
             {
-                inv.valueToinv("GridTieOperation", 1); // เปิด Grid
+                inv.valueToinv("GridTieOperation", 1); 
                 gridState = true;
                 Serial.println("🟢 ส่งคำสั่ง: Grid ON (energy > 2.0 kWh)");
             }
             else
             {
-                // กรณี energy อยู่ระหว่าง 1–2 → ส่งซ้ำตามสถานะปัจจุบัน
                 inv.valueToinv("GridTieOperation", gridState ? 1 : 0);
                 Serial.printf("⚙️  ยืนยันสถานะ Grid %s (energy = %.2f)\n",
                               gridState ? "ON" : "OFF", energy_kWh);

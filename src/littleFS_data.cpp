@@ -91,14 +91,12 @@ void loadEnergyFromFile()
     Serial.println("⚠️ No previous energy file found");
     return;
   }
-
   File file = LittleFS.open(energyFile, "r");
   if (!file)
   {
     Serial.println("❌ Failed to open energy file for reading");
     return;
   }
-
   JsonDocument doc;
   DeserializationError error = deserializeJson(doc, file);
   if (error)
@@ -107,7 +105,6 @@ void loadEnergyFromFile()
     file.close();
     return;
   }
-
   energy_kWh = doc["energy_kWh"].as<float>();
   file.close();
 
@@ -132,16 +129,12 @@ void clearEnergyFile()
 // ======================================================
 void handleEnergyStorage()
 {
-  // อัปเดตเวลา
   if (!getLocalTime(&timeinfo))
   {
     Serial.println("⚠️ Failed to obtain time");
     return;
   }
-
   unsigned long currentMillis = millis();
-
-  // ✅ 1. บันทึกทุก 15 นาที
   if (currentMillis - lastSaveTime >= saveInterval)
   {
     lastSaveTime = currentMillis;
