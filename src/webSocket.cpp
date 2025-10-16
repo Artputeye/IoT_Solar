@@ -16,14 +16,14 @@ String wsAllDataBase64()
 
     ///////////////////////Monotor////////////////////////////////
     doc["Load Percent"] = inv.data.loadPercent;
-    doc["Energy Daily"] = energy_kWh;
+    doc["Energy Daily"] = String(energy_kWh, 3);
     doc["Grid Power"] = gridPower;
     doc["Output Apparent Power"] = inv.data.ApparentPower;
     doc["Output Active Power"] = inv.data.ActivePower;
     doc["Output Voltage"] = inv.data.outputVoltage;
-    doc["Output Current"] = inv.data.outputCurrent;
+    doc["Output Current"] = String(inv.data.outputCurrent, 2);
     doc["Output Frequency"] = inv.data.outputFrequency;
-    doc["Power Factor"] = inv.data.powerFactor;
+    doc["Power Factor"] = String(inv.data.powerFactor, 2);
     doc["PV Power"] = inv.data.pvPower;
     doc["PV Voltage"] = inv.data.pvVoltage;
     doc["PV Current"] = inv.data.pvCurrent;

@@ -94,7 +94,6 @@ void loop()
 void TaskMain(void *pvParameters) // CPU Core0
 {
   unsigned long last = 0;
-
   bool toggle = false;
   while (1)
   {
@@ -102,6 +101,8 @@ void TaskMain(void *pvParameters) // CPU Core0
     mqtt.loop();
     fileManage();
     gridRun();
+    gridOperation();
+    wsloop();
     // Stackcheck
     if ((millis() - last) > 10000)
     {
@@ -120,17 +121,12 @@ void TaskSub(void *pvParameters) // CPU Core1
   {
     restart();
     ledStats();
-    gridOperation();
-    wsloop();
-
     if ((millis() - lastStack) > 10000)
     {
       lastStack = millis();
       UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
       showAPClients();
       timeRefresh();
-      // Serial.print("Remain Stack Subtask: ");
-      // Serial.println(stackRemaining);
     }
     esp_task_wdt_reset();
     vTaskDelay(pdMS_TO_TICKS(10));

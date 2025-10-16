@@ -28,12 +28,6 @@ char pass[10] = "12345678";
 
 uint8_t Mac[6];
 
-const char* ntpServer = "time.google.com";
-const long  gmtOffset_sec = 7 * 3600;
-const int   daylightOffset_sec = 0;
-
-int dateNow = 0; // ตัวแปรเก็บวันที่แบบ int
-
 int ledState = LOW;
 
 String wsSerial;

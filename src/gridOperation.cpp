@@ -1,8 +1,15 @@
 #include "gridOperation.h"
 
+const char *ntpServer = "pool.ntp.org";
+const long gmtOffset_sec = 7 * 3600;
+const int daylightOffset_sec = 0;
+int dateNow = 0;
+//////////////////////////////////////////////////////////////////////////////////
 struct tm timeinfo;
 float energy_kWh = 0.0;
 float gridPower = 0.0;
+const float GRID_ON_THRESHOLD = 2.0;
+const float GRID_OFF_THRESHOLD = 1.0;
 //////////////////////////////////////////////////////////////////////////////////
 unsigned long lastQvalue = 0;
 unsigned long lastQrate = 0;
@@ -56,12 +63,7 @@ void timeRefresh()
             }
             else
             {
-                // Serial.println("\n✅ Time synchronized successfully");
-                // Serial.printf("Current time: %02d-%02d-%04d %02d:%02d:%02d\n",
-                // timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900,
-                // timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
                 dateNow = timeinfo.tm_mday;
-                // Serial.printf("Today = %d\n", dateNow);
             }
         }
     }
@@ -109,64 +111,85 @@ void gridRun()
 void gridOperation()
 {
     unsigned long currentMillis = millis();
-    float dt = (currentMillis - lastEnergy) / 1000.0; // หน่วยวินาที
+    float dt = (currentMillis - lastEnergy) / 1000.0;
     lastEnergy = currentMillis;
-    float outputPower = 0.0;
-    float pvPower = 0.0;
-    outputPower = inv.data.ActivePower;
-    pvPower = inv.data.pvPower;
+
+    float outputPower = inv.data.ActivePower;
+    float pvPower = inv.data.pvPower;
     gridPower = outputPower - pvPower;
 
-    if (timeinfo.tm_hour == 18 && timeinfo.tm_min == 0 && timeinfo.tm_sec >= 0 && timeinfo.tm_sec <= 10)
+    static bool clearedToday = false;
+    if (timeinfo.tm_hour == 18 && timeinfo.tm_min == 0 && !clearedToday)
     {
-        clearEnergyFile();
-        energy_kWh = 0.0;
-        inv.energy = true;
-        delay(100);
-    }
-    if (inv.energy)
-    {
-        clearEnergyFile();
-        energy_kWh = 0.0;
-        inv.energy = false;
-        delay(100);
+        Serial.println("🕕 18:00 detected — initiating daily reset...");
+        bool success = clearEnergyFile();
+
+        if (!success)
+        {
+            Serial.println("⚠️ Warning: daily reset failed, retrying...");
+            delay(1000);
+            success = clearEnergyFile();
+        }
+
+        if (success)
+            Serial.println("✅ Daily energy reset complete");
+        else
+            Serial.println("❌ Daily reset failed after retry");
+
+        clearedToday = true;
     }
 
-    energy_kWh += ((gridPower * dt) / 3600000);
-    energy_kWh = roundf(energy_kWh * 1000) / 1000.000;
+    if (timeinfo.tm_hour == 0 && timeinfo.tm_min == 0)
+    {
+        clearedToday = false;
+    }
 
-    if ((millis() - lastFile) > fileInterval) // Respons from Inverter
+    energy_kWh += ((gridPower * dt) / 3600000.0);
+
+    if (millis() - lastGridOpr > gridOprInterval) // debug grid operation
+    {
+        lastGridOpr = millis();
+        if (inv.test)
+        {
+            Serial.println("Grid Operate : " + String(inv.gridOpr));
+        }
+    }
+
+    if (millis() - lastFile > fileInterval)
     {
         lastFile = millis();
         saveEnergyToFile();
-        delay(100);
     }
-    if (currentMillis - lastGridCheck >= gridCheckInterval)
+
+    if (millis() - lastGridCheck > gridCheckInterval)
     {
-        lastGridCheck = currentMillis;
+        lastGridCheck = millis();
+        
         if (timeinfo.tm_mday >= gridCutOff && timeinfo.tm_mday <= gridStart)
         {
-            inv.valueToinv("GridTieOperation", 0); 
+            inv.valueToinv("GridTieOperation", 0);
             return;
         }
+
         if (inv.gridOpr)
         {
-            if (energy_kWh < 1.0)
+
+            if (energy_kWh < GRID_OFF_THRESHOLD)
             {
-                inv.valueToinv("GridTieOperation", 0); 
+                inv.valueToinv("GridTieOperation", 0);
                 gridState = false;
-                Serial.println("🔴 ส่งคำสั่ง: Grid OFF (energy < 1.0 kWh)");
+                Serial.println("🔴 Grid OFF (energy < 1.0 kWh)");
             }
-            else if (energy_kWh > 2.0)
+            else if (energy_kWh > GRID_ON_THRESHOLD)
             {
-                inv.valueToinv("GridTieOperation", 1); 
+                inv.valueToinv("GridTieOperation", 1);
                 gridState = true;
-                Serial.println("🟢 ส่งคำสั่ง: Grid ON (energy > 2.0 kWh)");
+                Serial.println("🟢 Grid ON (energy > 2.0 kWh)");
             }
             else
             {
                 inv.valueToinv("GridTieOperation", gridState ? 1 : 0);
-                Serial.printf("⚙️  ยืนยันสถานะ Grid %s (energy = %.2f)\n",
+                Serial.printf("⚙️ Confirming Grid %s (energy = %.3f)\n",
                               gridState ? "ON" : "OFF", energy_kWh);
             }
         }

@@ -161,6 +161,9 @@ void getSetting() // API: ดึง JSON จาก littleFS แล้วส่�
       return;
     }
 
+    inv.gridOpr = atoi(doc["Grid Tie Auto"] | "0"); // grid tie auto status
+    Serial.println("Grid Operate from \"setting.json : " + String(inv.gridOpr));
+
     String jsonResponse;
     serializeJson(doc, jsonResponse);
     Serial.println("/get setting : " + jsonResponse);

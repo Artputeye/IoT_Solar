@@ -86,12 +86,6 @@ extern char pass[10];
 
 extern uint8_t Mac[6];
 
-extern const char *ntpServer;
-extern const long gmtOffset_sec;
-extern const int daylightOffset_sec;
-
-extern int dateNow ; // ตัวแปรเก็บวันที่แบบ int
-
 extern float power_check;
 extern const char *targetDirectory;
 
