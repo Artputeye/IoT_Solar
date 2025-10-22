@@ -173,7 +173,6 @@ void gridOperation()
 
         if (inv.gridOpr)
         {
-
             if (energy_kWh < GRID_OFF_THRESHOLD)
             {
                 inv.valueToinv("GridTieOperation", 0);

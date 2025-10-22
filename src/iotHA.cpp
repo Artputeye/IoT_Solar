@@ -1,4 +1,4 @@
-//iotHA.cpp
+// iotHA.cpp
 #include "iotHA.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -23,18 +23,21 @@ HASwitch grid("grid");
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Sensor object define
+HASensorNumber LoadPercent("LoadPercent");
+HASensorNumber EnergyDaily("EnergyDaily", HASensorNumber::PrecisionP3);
+HASensorNumber GridPower("GridPower");
+HASensorNumber ActivePower("ActivePower");
+HASensorNumber ApparentPower("ApparentPower");
 HASensorNumber OutputVolt("OutputVolt", HASensorNumber::PrecisionP1);
 HASensorNumber OutputCurrent("OutputCurrent", HASensorNumber::PrecisionP1);
 HASensorNumber OutputFrequency("OutputFrequency", HASensorNumber::PrecisionP1);
-HASensorNumber ApparentPower("ApparentPower");
-HASensorNumber ActivePower("ActivePower");
 HASensorNumber PowerFactor("PowerFactor", HASensorNumber::PrecisionP2);
-HASensorNumber LoadPercent("LoadPercent");
-HASensorNumber BusVoltage("BusVoltage");
-HASensorNumber Temp("Temp");
+HASensorNumber pvPower("pvPower", HASensorNumber::PrecisionP1);
 HASensorNumber pvCurrent("pvCurrent", HASensorNumber::PrecisionP1);
 HASensorNumber pvVoltage("pvVoltage", HASensorNumber::PrecisionP1);
-HASensorNumber pvPower("pvPower", HASensorNumber::PrecisionP1);
+HASensorNumber BusVoltage("BusVoltage");
+HASensorNumber BattVoltage("BattVoltage", HASensorNumber::PrecisionP1);
+HASensorNumber Temp("Temp");
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // sent inverter data to MQTT broker
@@ -43,18 +46,21 @@ void iotHArun()
     if (!inv.test)
     {
         float power;
+        LoadPercent.setValue(inv.data.loadPercent);
+        EnergyDaily.setValue(energy_kWh);
+        GridPower.setValue(gridPower);
+        ActivePower.setValue(inv.data.ActivePower);
+        ApparentPower.setValue(inv.data.ApparentPower);
         OutputVolt.setValue(inv.data.outputVoltage);
         OutputCurrent.setValue(inv.data.outputCurrent);
         OutputFrequency.setValue(inv.data.outputFrequency);
-        ApparentPower.setValue(inv.data.ApparentPower);
-        ActivePower.setValue(inv.data.ActivePower);
-        LoadPercent.setValue(inv.data.loadPercent);
         PowerFactor.setValue(inv.data.powerFactor);
-        BusVoltage.setValue(inv.data.busVoltage);
-        Temp.setValue(inv.data.temp);
+        pvPower.setValue(inv.data.pvPower);
         pvCurrent.setValue(inv.data.pvCurrent);
         pvVoltage.setValue(inv.data.pvVoltage);
-        pvPower.setValue(inv.data.pvPower);
+        BusVoltage.setValue(inv.data.busVoltage);
+        BattVoltage.setValue(inv.data.batteryVoltage);
+        Temp.setValue(inv.data.temp);
     }
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -150,41 +156,45 @@ void iotHAsetup()
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Name sensor device state
-    OutputVolt.setName("Output Voltage");
-    OutputVolt.setIcon("mdi:home");
-    OutputVolt.setUnitOfMeasurement("V");
+    LoadPercent.setName("Load Percent");
+    LoadPercent.setIcon("mdi:ticket-percent");
+    LoadPercent.setUnitOfMeasurement("%");
 
-    OutputCurrent.setName("Output Current");
-    OutputCurrent.setIcon("mdi:home");
-    OutputCurrent.setUnitOfMeasurement("A");
+    EnergyDaily.setName("Energy Daily");
+    EnergyDaily.setIcon("mdi:meter-electric");
+    EnergyDaily.setUnitOfMeasurement("kWh");
 
-    OutputFrequency.setName("Output Freq");
-    OutputFrequency.setIcon("mdi:home");
-    OutputFrequency.setUnitOfMeasurement("Hz");
-
-    ApparentPower.setName("Apparent Power");
-    ApparentPower.setIcon("mdi:transmission-tower");
-    ApparentPower.setUnitOfMeasurement("VA");
+    GridPower.setName("Grid Power");
+    GridPower.setIcon("mdi:transmission-tower");
+    GridPower.setUnitOfMeasurement("W");
 
     ActivePower.setName("Active Power");
     ActivePower.setIcon("mdi:transmission-tower");
     ActivePower.setUnitOfMeasurement("W");
 
-    LoadPercent.setName("Load");
-    LoadPercent.setIcon("mdi:transmission-tower");
-    LoadPercent.setUnitOfMeasurement("%");
+    ApparentPower.setName("Apparent Power");
+    ApparentPower.setIcon("mdi:transmission-tower");
+    ApparentPower.setUnitOfMeasurement("VA");
+
+    OutputVolt.setName("Output Voltage");
+    OutputVolt.setIcon("mdi:flash-triangle");
+    OutputVolt.setUnitOfMeasurement("V");
+
+    OutputCurrent.setName("Output Current");
+    OutputCurrent.setIcon("mdi:current-ac");
+    OutputCurrent.setUnitOfMeasurement("A");
+
+    OutputFrequency.setName("Output Frequency");
+    OutputFrequency.setIcon("mdi:sine-wave");
+    OutputFrequency.setUnitOfMeasurement("Hz");
 
     PowerFactor.setName("Power Factor");
-    PowerFactor.setIcon("mdi:alpha-p-circle");
-    PowerFactor.setUnitOfMeasurement("θ");
+    PowerFactor.setIcon("mdi:angle-acute");
+    //PowerFactor.setUnitOfMeasurement("cosθ");
 
-    BusVoltage.setName("Bus Voltage");
-    BusVoltage.setIcon("mdi:flash-triangle");
-    BusVoltage.setUnitOfMeasurement("V");
-
-    Temp.setName("Temp");
-    Temp.setIcon("mdi:temperature-celsius");
-    Temp.setUnitOfMeasurement("°C");
+    pvPower.setName("PV Power");
+    pvPower.setIcon("mdi:transmission-tower-import");
+    pvPower.setUnitOfMeasurement("W");
 
     pvCurrent.setName("PV Current");
     pvCurrent.setIcon("mdi:current-dc");
@@ -194,9 +204,17 @@ void iotHAsetup()
     pvVoltage.setIcon("mdi:flash-triangle");
     pvVoltage.setUnitOfMeasurement("V");
 
-    pvPower.setName("PV Power");
-    pvPower.setIcon("mdi:transmission-tower-import");
-    pvPower.setUnitOfMeasurement("W");
+    BusVoltage.setName("Bus Voltage");
+    BusVoltage.setIcon("mdi:flash-triangle");
+    BusVoltage.setUnitOfMeasurement("V");
+
+    BattVoltage.setName("Battery Voltage");
+    BattVoltage.setIcon("mdi:flash-triangle");
+    BattVoltage.setUnitOfMeasurement("V");
+
+    Temp.setName("Temperature");
+    Temp.setIcon("mdi:thermometer");
+    Temp.setUnitOfMeasurement("°C");
 
     // Converse Port char to uint_16
     uint16_t PORT = atoi(MQTT_PORT);
