@@ -11,28 +11,29 @@ void simulateData()
         float fre = 50.1 + (float(i) / 100);
         float vbus = 360 + (i / 10);
         float t = 30 + (i / 10);
-        float appar = 520 + (i / 10);
-        float active = 367 + (i / 10);
+        float appar = 4200 + (i / 10);
+        float active = 3670 + (i / 10);
         float per = (active / 4200) * 100;
-        float pvc = 7.2 + (float(i) / 100);
+        float pvc = 1.2 + (float(i) / 100);
         float pvv = 335.7 + (float(i) / 10) + (float(i) / 100);
         float batt = 23.3 + (float(i) / 10);
-        float power = pvc * pvv;
+        float pvpower = pvc * pvv;
         float curr = appar / volt; // I=S/V
         float pf = active / appar;
 
         // Monitor/////////////////////////////////////////////////
-
-        inv.data.ApparentPower = appar;
-        inv.data.ActivePower = active;
         inv.data.loadPercent = per;
-        inv.data.powerFactor = pf;
-        inv.data.pvPower = power;
-        inv.data.pvCurrent = pvc;
-        inv.data.pvVoltage = pvv;
+        // Energy
+        // Grid Power
+        inv.data.ActivePower = active;
+        inv.data.ApparentPower = appar;
         inv.data.outputVoltage = volt;
         inv.data.outputCurrent = curr;
         inv.data.outputFrequency = fre;
+        inv.data.powerFactor = pf;
+        inv.data.pvPower = pvpower;
+        inv.data.pvCurrent = pvc;
+        inv.data.pvVoltage = pvv;
         inv.data.busVoltage = vbus;
         inv.data.batteryVoltage = batt;
         inv.data.temp = t;
@@ -53,20 +54,22 @@ void simulateData()
         inv.rated.MaxChargingCurrent = 14;
 
         // Home Assistant////////////////////////////////////////
-
+        LoadPercent.setValue(per);
+        EnergyDaily.setValue(energy_kWh);
+        GridPower.setValue(gridPower);
+        ActivePower.setValue(active);
+        ApparentPower.setValue(appar);
         OutputVolt.setValue(volt);
         OutputCurrent.setValue(curr);
         OutputFrequency.setValue(fre);
-        ApparentPower.setValue(appar);
-        ActivePower.setValue(active);
         PowerFactor.setValue(pf);
-        LoadPercent.setValue(per);
-        BusVoltage.setValue(vbus);
-        Temp.setValue(t);
+        pvPower.setValue(pvpower);
         pvCurrent.setValue(pvc);
         pvVoltage.setValue(pvv);
-        pvPower.setValue(power);
+        BusVoltage.setValue(vbus);
+        Temp.setValue(t);
 
-        Serial.println("V:" + String(volt, 2));
+        Serial.println("Voltage:" + String(volt, 2));
+        Serial.println("Energy:" + String(energy_kWh, 3));
     }
 }

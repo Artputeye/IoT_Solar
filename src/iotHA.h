@@ -18,18 +18,22 @@ extern HASwitch grid;
 // extern HASelect PrioritySelect("PrioritySelect");
 // extern HASelect OutputSelect("OutputSelect");
 
+extern HASensorNumber LoadPercent;
+extern HASensorNumber EnergyDaily;
+extern HASensorNumber GridPower;
+extern HASensorNumber ActivePower;
+extern HASensorNumber ApparentPower;
 extern HASensorNumber OutputVolt;
 extern HASensorNumber OutputCurrent;
 extern HASensorNumber OutputFrequency;
-extern HASensorNumber ApparentPower;
-extern HASensorNumber ActivePower;
 extern HASensorNumber PowerFactor;
-extern HASensorNumber LoadPercent;
-extern HASensorNumber BusVoltage;
-extern HASensorNumber Temp;
+extern HASensorNumber pvPower;
 extern HASensorNumber pvCurrent;
 extern HASensorNumber pvVoltage;
-extern HASensorNumber pvPower;
+extern HASensorNumber BusVoltage;
+extern HASensorNumber BattVoltage;
+extern HASensorNumber Temp;
+
 
 void iotHArun();
 void iotHAsetup();

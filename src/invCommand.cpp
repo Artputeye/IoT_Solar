@@ -409,6 +409,10 @@ void invCommand::parseQPIGS(String response)
   data.outputCurrent = data.ApparentPower / data.gridVoltage;
   data.outputCurrent = roundf(data.outputCurrent * 10) / 10.0;
   data.powerFactor = (float)data.ActivePower / (float)data.ApparentPower;
+  if (isnan(data.powerFactor) || data.powerFactor < 0 || data.powerFactor > 1)
+  {
+    data.powerFactor = 0.0;
+  }
   data.powerFactor = roundf(data.powerFactor * 100) / 100.0;
   data.pvPower = data.pvCurrent * data.pvVoltage;
 }
