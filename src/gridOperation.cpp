@@ -1,11 +1,7 @@
 #include "gridOperation.h"
 
-const char *ntpServer = "pool.ntp.org";
-const long gmtOffset_sec = 7 * 3600;
-const int daylightOffset_sec = 0;
-int dateNow = 0;
 //////////////////////////////////////////////////////////////////////////////////
-struct tm timeinfo;
+
 float energy_kWh = 0.0;
 float gridPower = 0.0;
 const float GRID_ON_THRESHOLD = 2.0;
@@ -30,44 +26,6 @@ const unsigned long energyInterval = 1000;
 bool toggle;
 bool gridState = false;
 /////////////////////////////////////////////////////////////////////////////////
-void timeServer()
-{
-    if (wifimode == 1)
-    {
-        if (WiFi.status() == WL_CONNECTED)
-        {
-            configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-            timeRefresh();
-            Serial.println("Syncing time from NTP...");
-        }
-    }
-}
-
-void timeRefresh()
-{
-    int retry = 0;
-    if (wifimode == 1)
-    {
-        if (WiFi.status() == WL_CONNECTED)
-        {
-            while (!getLocalTime(&timeinfo) && retry < 10)
-            {
-                Serial.print(".");
-                delay(1000);
-                retry++;
-            }
-
-            if (!getLocalTime(&timeinfo))
-            {
-                Serial.println("\n❌ Failed to obtain time (still no NTP response)");
-            }
-            else
-            {
-                dateNow = timeinfo.tm_mday;
-            }
-        }
-    }
-}
 
 void gridRun()
 {

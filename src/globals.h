@@ -38,6 +38,7 @@
 #include "simulate.h"
 #include "gridOperation.h"
 #include "ledStatus.h"
+#include "ntpServer.h"
 
 /////////////////////////////////////////////////////////////////////////
 #define WDT_TIMEOUT 120

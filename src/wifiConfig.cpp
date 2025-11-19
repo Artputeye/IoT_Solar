@@ -92,12 +92,10 @@ void restart()
     if (inv.wifi_config)
     {
         setupWiFiMode();
-        //Serial.println("inv.wifi_config" + String(inv.wifi_config));
     }
     if (inv.ip_config)
     {
         setupWiFiMode();
-        //Serial.println("inv.ip_config" + String(inv.ip_config));
     }
 }
 
