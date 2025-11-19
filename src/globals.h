@@ -37,6 +37,7 @@
 #include "iotHA.h"
 #include "simulate.h"
 #include "gridOperation.h"
+#include "ledStatus.h"
 
 /////////////////////////////////////////////////////////////////////////
 #define WDT_TIMEOUT 120

@@ -24,7 +24,7 @@ const unsigned long qrateInterval = 10000;
 const unsigned long resInterval = 100;
 const unsigned long fileInterval = 60 * 1000;
 const unsigned long gridOprInterval = 1000;
-const unsigned long gridCheckInterval = 900000; // 15 นาที (15 * 60 * 1000 ms)
+const unsigned long gridCheckInterval = 1 * 60 * 1000 ; //(1 * 60 * 1000 ms)
 const unsigned long energyInterval = 1000;
 /////////////////////////////////////////////////////////////////////////////////
 bool toggle;
@@ -50,7 +50,7 @@ void timeRefresh()
     {
         if (WiFi.status() == WL_CONNECTED)
         {
-            while (!getLocalTime(&timeinfo) && retry < 3)
+            while (!getLocalTime(&timeinfo) && retry < 10)
             {
                 Serial.print(".");
                 delay(1000);
@@ -79,7 +79,7 @@ void gridRun()
             inv.cmd_inv("QPIGS");
         }
         inv.Response();
-        wsJsonInverter(inv.invData);
+        //wsJsonInverter(inv.invData);
         iotHArun();
         simulateData();
     }
@@ -164,10 +164,11 @@ void gridOperation()
     if (millis() - lastGridCheck > gridCheckInterval)
     {
         lastGridCheck = millis();
-        
+        wsJsonSerial("Grid Operation Check");
         if (timeinfo.tm_mday >= gridCutOff && timeinfo.tm_mday <= gridStart)
         {
             inv.valueToinv("GridTieOperation", 0);
+            wsJsonSerial("Grid OFF (within cut-off period)");
             return;
         }
 

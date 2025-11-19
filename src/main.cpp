@@ -7,6 +7,7 @@ HAMqtt mqtt(client, device); // home assistant ต้องประกาศ Ob
 
 void TaskMain(void *pvParameters);
 void TaskSub(void *pvParameters);
+void TaskLED(void *pvParameters); 
 
 void setup()
 {
@@ -44,7 +45,7 @@ void setup()
   Serial.println("Home Assistant Initialized");
   delay(300);
 
-  // === Load Energy ===  
+  // === Load Energy ===
   loadEnergyFromFile();
   Serial.println("Load Energy From FS");
   delay(300);
@@ -69,11 +70,14 @@ void setup()
   // === Task Creation ===
   TaskHandle_t xHandleMain = NULL;
   TaskHandle_t xHandleSub = NULL;
+  TaskHandle_t xHandleLED = NULL;
 
   xTaskCreatePinnedToCore(
       TaskMain, "TaskMain", 4096, NULL, 1, &xHandleMain, 0);
   xTaskCreatePinnedToCore(
       TaskSub, "TaskSub", 3000, NULL, 1, &xHandleSub, 1);
+  xTaskCreatePinnedToCore(
+      TaskLED, "TaskLED", 2048, NULL, 1, &xHandleLED, 1);
 
   // === Add tasks to Watchdog ===
   esp_task_wdt_add(xHandleMain);
@@ -88,8 +92,6 @@ void loop()
   delay(100);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 void TaskMain(void *pvParameters) // CPU Core0
 {
@@ -120,7 +122,6 @@ void TaskSub(void *pvParameters) // CPU Core1
   while (1)
   {
     restart();
-    ledStats();
     if ((millis() - lastStack) > 10000)
     {
       lastStack = millis();
@@ -130,5 +131,17 @@ void TaskSub(void *pvParameters) // CPU Core1
     }
     esp_task_wdt_reset();
     vTaskDelay(pdMS_TO_TICKS(10));
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+void TaskLED(void *pvParameters)
+{
+  pinMode(LED, OUTPUT);
+
+  while (1)
+  {
+    ledPatternSelect();
+    vTaskDelay(pdMS_TO_TICKS(20)); // 50 Hz
   }
 }

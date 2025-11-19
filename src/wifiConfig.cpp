@@ -65,11 +65,12 @@ void restart()
     {
         if (WiFi.status() != WL_CONNECTED)
         {
-
             Serial.println("Lost WiFi connection. Restarting...");
             delay(1000);
             ESP.restart();
             //Serial.println("wifimode " + String(wifimode));
+        }else{
+            //Serial.println("WiFi connected.");
         }
     }
     //////////////////////////////////////////////////////////////////////////////////
@@ -91,12 +92,12 @@ void restart()
     if (inv.wifi_config)
     {
         setupWiFiMode();
-        Serial.println("inv.wifi_config" + String(inv.wifi_config));
+        //Serial.println("inv.wifi_config" + String(inv.wifi_config));
     }
     if (inv.ip_config)
     {
         setupWiFiMode();
-        Serial.println("inv.ip_config" + String(inv.ip_config));
+        //Serial.println("inv.ip_config" + String(inv.ip_config));
     }
 }
 
@@ -167,6 +168,7 @@ void setupWiFiMode()
         Serial.println("📡 Setting WiFi to ACCESS POINT mode");
 
         // ตั้งค่าโหมด AP
+        ledMode = LED_AP_MODE;
         WiFi.mode(WIFI_AP);
 
         // กำหนดค่า IP ของ AP
@@ -224,6 +226,7 @@ void setupWiFiMode()
     if (wifimode == 1)
     {
         Serial.println("📡 Setting WiFi to STATION mode");
+        ledMode = LED_BUSY;
         WiFi.mode(WIFI_STA);
         WiFi.begin(WIFI_NAME, PASSWORD);
 
@@ -237,10 +240,12 @@ void setupWiFiMode()
         {
             Serial.println("\n✅ Connected to WiFi (STA Mode)");
             Serial.println(WiFi.localIP());
+            ledMode = LED_CONNECTED; 
         }
         else
         {
             Serial.println("\n❌ Failed to connect WiFi");
+            ledMode = LED_DISCONNECTED;
         }
     }
 
@@ -320,30 +325,3 @@ void showAPClients()
     }
 }
 
-void ledStats()
-{
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        ledIndicator(100, 2000);
-    }
-    else
-    {
-        ledIndicator(300, 300);
-    }
-}
-
-void ledIndicator(unsigned long onTime, unsigned long offTime)
-{
-    static bool ledState = false;
-    static unsigned long previousMillis = 0;
-
-    unsigned long currentMillis = millis();
-    unsigned long interval = ledState ? onTime : offTime;
-
-    if (currentMillis - previousMillis >= interval)
-    {
-        previousMillis = currentMillis;
-        ledState = !ledState;
-        digitalWrite(LED, ledState ? HIGH : LOW);
-    }
-}

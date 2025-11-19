@@ -10,7 +10,5 @@ void setupWiFiMode();
 void setupIPConfig();
 IPAddress parseIP(const char *ipStr);
 void showAPClients();
-void ledStats();
-void ledIndicator(unsigned long onTime, unsigned long offTime) ;
 
 #endif
