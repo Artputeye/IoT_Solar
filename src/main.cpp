@@ -7,7 +7,8 @@ HAMqtt mqtt(client, device); // home assistant ต้องประกาศ Ob
 
 void TaskMain(void *pvParameters);
 void TaskSub(void *pvParameters);
-void TaskLED(void *pvParameters); 
+void TaskLED(void *pvParameters);
+void TaskNTP(void *pvParameters); // Task สำหรับ sync NTP
 
 void setup()
 {
@@ -41,6 +42,7 @@ void setup()
   // === Device Configuration ===
   mac_config();
   wifi_config();
+  timeServer();
   iotHAsetup();
   Serial.println("Home Assistant Initialized");
   delay(300);
@@ -71,6 +73,7 @@ void setup()
   TaskHandle_t xHandleMain = NULL;
   TaskHandle_t xHandleSub = NULL;
   TaskHandle_t xHandleLED = NULL;
+  TaskHandle_t xHandleNTP = NULL;
 
   xTaskCreatePinnedToCore(
       TaskMain, "TaskMain", 4096, NULL, 1, &xHandleMain, 0);
@@ -78,6 +81,9 @@ void setup()
       TaskSub, "TaskSub", 3000, NULL, 1, &xHandleSub, 1);
   xTaskCreatePinnedToCore(
       TaskLED, "TaskLED", 2048, NULL, 1, &xHandleLED, 1);
+  xTaskCreatePinnedToCore(
+      TaskNTP, "TaskNTP", 4096, NULL, 1, &xHandleNTP, 1); // core1 หรือ core0 ตามต้องการ
+  esp_task_wdt_add(xHandleNTP);
 
   // === Add tasks to Watchdog ===
   esp_task_wdt_add(xHandleMain);
@@ -143,5 +149,14 @@ void TaskLED(void *pvParameters)
   {
     ledPatternSelect();
     vTaskDelay(pdMS_TO_TICKS(20)); // 50 Hz
+  }
+}
+
+void TaskNTP(void *pvParameters)
+{
+  while (1)
+  {
+    timeServer();                     // เรียก configTime + timeRefresh
+    vTaskDelay(pdMS_TO_TICKS(60000)); // อัพเดตทุก 60 วินาที
   }
 }

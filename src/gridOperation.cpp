@@ -123,6 +123,8 @@ void gridOperation()
     {
         lastGridCheck = millis();
         wsJsonSerial("Grid Operation Check");
+        wsJsonSerial(String(dateNow));
+
         if (timeinfo.tm_mday >= gridCutOff && timeinfo.tm_mday <= gridStart)
         {
             inv.valueToinv("GridTieOperation", 0);

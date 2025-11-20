@@ -18,7 +18,6 @@ void wifi_config()
         // Station mode: ต้อง config IP ก่อน connect
         setupIPConfig();
         setupWiFiMode();
-        timeServer();
     }
     else
     {

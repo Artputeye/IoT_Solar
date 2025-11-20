@@ -2,7 +2,7 @@
 const char *serverUrl = "pool.ntp.org";
 const long gmtOffset_sec = 7 * 3600;
 const int daylightOffset_sec = 0;
-int dateNow = 0;
+int volatile dateNow = 0;
 struct tm timeinfo;
 
 void timeServer()

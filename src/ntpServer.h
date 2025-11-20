@@ -5,7 +5,7 @@
 extern const char *serverUrl;
 extern const long gmtOffset_sec;
 extern const int daylightOffset_sec;
-extern int dateNow ;
+extern volatile int dateNow;
 extern struct tm timeinfo;
 
 void timeServer();
