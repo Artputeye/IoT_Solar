@@ -1,45 +1,79 @@
 #include "ntpServer.h"
-const char *serverUrl = "pool.ntp.org";
-const long gmtOffset_sec = 7 * 3600;
-const int daylightOffset_sec = 0;
-int volatile dateNow = 0;
-struct tm timeinfo;
 
-void timeServer()
+struct tm timeinfo;
+int dateNow = 0;
+
+// รายชื่อ NTP server สำรอง
+const char *ntpList[] = {
+    "time.google.com",
+    "time1.google.com",
+    "time2.google.com",
+    "time3.google.com",
+    "time4.google.com"};
+
+int ntpIndex = 0;
+const int ntpCount = sizeof(ntpList) / sizeof(ntpList[0]);
+
+bool hasSyncedOnce = false; // เคยซิงได้แล้วหรือยัง
+unsigned long lastTry = 0;
+const unsigned long retryDelay = 2000; // 2 วินาทีต่อ 1 server (ไม่ block)
+
+void initNTP()
 {
-    if (wifimode == 1)
-    {
-        if (WiFi.status() == WL_CONNECTED)
-        {
-            configTime(gmtOffset_sec, daylightOffset_sec, serverUrl);
-            timeRefresh();
-            Serial.println("Syncing time from NTP...");
-        }
-    }
+    configTime(7 * 3600, 0, ntpList[ntpIndex]);
+    Serial.printf("Initial NTP server: %s\n", ntpList[ntpIndex]);
 }
 
-void timeRefresh()
+// เช็คเฉพาะตอนที่เวลาไม่อัพเดต
+void ntpLoop()
 {
-    int retry = 0;
-    if (wifimode == 1)
+    // 1) ถ้ายังมีเวลาอยู่ → ไม่ต้อง sync
+    if (getLocalTime(&timeinfo))
     {
-        if (WiFi.status() == WL_CONNECTED)
-        {
-            while (!getLocalTime(&timeinfo) && retry < 10)
-            {
-                Serial.print(".");
-                delay(1000);
-                retry++;
-            }
+        if (!hasSyncedOnce)
+            Serial.println("NTP sync complete (first sync)");
 
-            if (!getLocalTime(&timeinfo))
-            {
-                Serial.println("\n❌ Failed to obtain time (still no NTP response)");
-            }
-            else
-            {
-                dateNow = timeinfo.tm_mday;
-            }
-        }
+        hasSyncedOnce = true;
+        dateNow = timeinfo.tm_mday;
+        return;
     }
+
+    // 2) เวลาหาย / ยังไม่เคยซิง ต้องเริ่ม sync
+    unsigned long now = millis();
+    if (now - lastTry < retryDelay)
+        return; // 2 วินาที ค่อยลองใหม่
+    lastTry = now;
+
+    Serial.printf("NTP failed → try server: %s\n", ntpList[ntpIndex]);
+
+    // Poll แบบ non-blocking (เช็ค 200 ms)
+    unsigned long t0 = millis();
+    bool ok = false;
+
+    while (millis() - t0 < 200)
+    {
+        if (getLocalTime(&timeinfo))
+        {
+            ok = true;
+            break;
+        }
+        vTaskDelay(pdMS_TO_TICKS(20)); // ไม่ block core
+    }
+
+    if (ok)
+    {
+        Serial.printf("NTP synced via: %s\n", ntpList[ntpIndex]);
+        hasSyncedOnce = true;
+        dateNow = timeinfo.tm_mday;
+        return;
+    }
+
+    // 3) ถ้า server นี้ยังไม่ตอบ → สลับตัวถัดไป
+    ntpIndex++;
+    if (ntpIndex >= ntpCount)
+        ntpIndex = 0;
+
+    Serial.printf("Switching to next NTP server: %s\n", ntpList[ntpIndex]);
+
+    configTime(7 * 3600, 0, ntpList[ntpIndex]);
 }

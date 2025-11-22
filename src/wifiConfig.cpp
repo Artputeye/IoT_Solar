@@ -1,15 +1,79 @@
 // wifiConfig.cpp
 #include "wifiConfig.h"
 
-unsigned long last = 0;
-// int t = 500; // time led status
+const uint8_t AP_PIN = 0;       // ใช้ IO0
+const unsigned long HOLD_MS = 5000; // 5 วินาที
 
+unsigned long pressStart = 0;
+bool pressed = false;
+bool apModeActive = false;
+
+unsigned long last = 0;
 float power = 0.0;
 float lastPower = 0.0;
 unsigned long lastChangeTime = 0;            // เวลาเปลี่ยนแปลงล่าสุด (ms)
 const unsigned long timeout = 5 * 60 * 1000; // 5 นาที (300,000 ms)
 
-void wifi_config()
+void restart()
+{
+    if (wifimode == 1)
+    {
+        if (WiFi.status() != WL_CONNECTED)
+        {
+            Serial.println("Lost WiFi connection. Please Check AP or Restarting...");
+            delay(1000);
+            //Serial.println("wifimode " + String(wifimode));
+        }else{
+            //Serial.println("WiFi connected.");
+        }
+    }
+    //////////////////////////////////////////////////////////////////////////////////
+    power = inv.data.ActivePower;
+    if (inv.RunMode == true)
+    {
+        if (power != lastPower)
+        {
+            lastChangeTime = millis(); // อัพเดทเวลาถ้ามีการเปลี่ยน
+            lastPower = power;
+        }
+        if (millis() - lastChangeTime >= timeout)
+        {
+            Serial.println("Power value unchanged for 5 minutes. Restarting...");
+            delay(1000);
+            ESP.restart();
+        }
+    }
+    if (inv.wifi_config)
+    {
+        setupWiFiMode();
+    }
+    if (inv.ip_config)
+    {
+        setupWiFiMode();
+    }
+}
+
+void APmode(){
+    bool isPressed = (digitalRead(AP_PIN) == LOW);
+
+  if (isPressed && !pressed) {
+    pressed = true;
+    pressStart = millis();
+  }
+  else if (!isPressed && pressed) {
+    pressed = false;
+    pressStart = 0;
+  }
+
+  if (pressed && !apModeActive) {
+    if (millis() - pressStart >= HOLD_MS) {
+      Serial.println("Long press on IO0 → Entering AP Mode");
+      wifimode = false; //AP Mode
+    }
+  }
+}
+
+void wifi_Setup()
 {
     readNetwork();
     delay(500);
@@ -56,46 +120,6 @@ void mac_config()
     Serial.println(macStr);
     Serial.println("UniqueId assigned to HADevice (using raw bytes)");
     Serial.println("================================");
-}
-
-void restart()
-{
-    if (wifimode == 1)
-    {
-        if (WiFi.status() != WL_CONNECTED)
-        {
-            Serial.println("Lost WiFi connection. Restarting...");
-            delay(1000);
-            ESP.restart();
-            //Serial.println("wifimode " + String(wifimode));
-        }else{
-            //Serial.println("WiFi connected.");
-        }
-    }
-    //////////////////////////////////////////////////////////////////////////////////
-    power = inv.data.ActivePower;
-    if (inv.RunMode == true)
-    {
-        if (power != lastPower)
-        {
-            lastChangeTime = millis(); // อัพเดทเวลาถ้ามีการเปลี่ยน
-            lastPower = power;
-        }
-        if (millis() - lastChangeTime >= timeout)
-        {
-            Serial.println("Power value unchanged for 5 minutes. Restarting...");
-            delay(1000);
-            ESP.restart();
-        }
-    }
-    if (inv.wifi_config)
-    {
-        setupWiFiMode();
-    }
-    if (inv.ip_config)
-    {
-        setupWiFiMode();
-    }
 }
 
 void readNetwork()

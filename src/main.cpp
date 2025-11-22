@@ -41,8 +41,7 @@ void setup()
 
   // === Device Configuration ===
   mac_config();
-  wifi_config();
-  timeServer();
+  wifi_Setup();
   iotHAsetup();
   Serial.println("Home Assistant Initialized");
   delay(300);
@@ -62,6 +61,11 @@ void setup()
   initWebSocket();
   server.begin();
   Serial.println("Web Server Started");
+  delay(300);
+
+  // === NTP Setup ===
+  initNTP();
+  Serial.println("NTP Server Configured");
   delay(300);
 
   // === Watchdog Setup ===
@@ -106,12 +110,8 @@ void TaskMain(void *pvParameters) // CPU Core0
   while (1)
   {
     // Main function
-    mqtt.loop();
-    fileManage();
     gridRun();
     gridOperation();
-    wsloop();
-    // Stackcheck
     if ((millis() - last) > 10000)
     {
       UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
@@ -127,13 +127,16 @@ void TaskSub(void *pvParameters) // CPU Core1
   unsigned long lastStack = 0;
   while (1)
   {
+    fileManage();
+    mqtt.loop();
+    wsloop();
     restart();
+    APmode();
     if ((millis() - lastStack) > 10000)
     {
       lastStack = millis();
       UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
       showAPClients();
-      timeRefresh();
     }
     esp_task_wdt_reset();
     vTaskDelay(pdMS_TO_TICKS(10));
@@ -154,9 +157,16 @@ void TaskLED(void *pvParameters)
 
 void TaskNTP(void *pvParameters)
 {
+  unsigned long lastNtp = 0;
   while (1)
   {
-    timeServer();                     // เรียก configTime + timeRefresh
-    vTaskDelay(pdMS_TO_TICKS(60000)); // อัพเดตทุก 60 วินาที
+    if ((millis() - lastNtp) > 100000)
+    {
+      lastNtp = millis();
+      UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
+      showAPClients();
+    }
+    // ntpLoop(); // Non-blocking
+    vTaskDelay(pdMS_TO_TICKS(20)); // ทุก 200 ms เช็คครั้ง (ไม่กิน core)
   }
 }

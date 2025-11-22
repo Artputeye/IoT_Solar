@@ -1,7 +1,8 @@
 #include "gridOperation.h"
 
 //////////////////////////////////////////////////////////////////////////////////
-
+int gridCutOff;
+int gridStart;
 float energy_kWh = 0.0;
 float gridPower = 0.0;
 const float GRID_ON_THRESHOLD = 2.0;
@@ -20,7 +21,7 @@ const unsigned long qrateInterval = 10000;
 const unsigned long resInterval = 100;
 const unsigned long fileInterval = 60 * 1000;
 const unsigned long gridOprInterval = 1000;
-const unsigned long gridCheckInterval = 1 * 60 * 1000 ; //(1 * 60 * 1000 ms)
+const unsigned long gridCheckInterval = 1 * 60 * 1000; //(1 * 60 * 1000 ms)
 const unsigned long energyInterval = 1000;
 /////////////////////////////////////////////////////////////////////////////////
 bool toggle;
@@ -37,7 +38,7 @@ void gridRun()
             inv.cmd_inv("QPIGS");
         }
         inv.Response();
-        //wsJsonInverter(inv.invData);
+        // wsJsonInverter(inv.invData);
         iotHArun();
         simulateData();
     }
@@ -122,13 +123,28 @@ void gridOperation()
     if (millis() - lastGridCheck > gridCheckInterval)
     {
         lastGridCheck = millis();
-        wsJsonSerial("Grid Operation Check");
-        wsJsonSerial(String(dateNow));
+        Serial.println("--- Grid Operation Check ---");
+        Serial.println("Current Date: " + String(timeinfo.tm_mday));
+
+        ///////////////////////////////////////////////
+        Serial.printf("[TEST] tm_mday=%d, gridCutOff=%d, gridStart=%d\n",
+                      timeinfo.tm_mday, gridCutOff, gridStart);
+
+        if (timeinfo.tm_mday >= gridCutOff && timeinfo.tm_mday <= gridStart)
+        {
+            Serial.println("[TEST] >>>>> ENTER DATE BLOCK <<<<<");
+        }
+        else
+        {
+            Serial.println("[TEST] NOT in date range");
+        }
+        /////////////////////////////////////////////////
 
         if (timeinfo.tm_mday >= gridCutOff && timeinfo.tm_mday <= gridStart)
         {
             inv.valueToinv("GridTieOperation", 0);
-            wsJsonSerial("Grid OFF (within cut-off period)");
+            // wsJsonSerial("Grid OFF (within cut-off period)");
+            Serial.println("🔴 Grid OFF (within cut-off period)");
             return;
         }
 

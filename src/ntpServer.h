@@ -2,13 +2,10 @@
 #define NTPSERVER_H
 #include "globals.h"
 
-extern const char *serverUrl;
-extern const long gmtOffset_sec;
-extern const int daylightOffset_sec;
-extern volatile int dateNow;
 extern struct tm timeinfo;
+extern int dateNow;
 
-void timeServer();
-void timeRefresh();
+void initNTP();
+void ntpLoop();
 
 #endif

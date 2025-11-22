@@ -1,8 +1,7 @@
 // webHandle.cpp
 #include "webHandle.h"
 const char *PARAM_MESSAGE PROGMEM = "plain";
-int gridCutOff;
-int gridStart;
+
 
 void webHandle()
 {
