@@ -34,7 +34,7 @@ void firmwareUpload()
         if (request->hasParam("type", true)) {
           updateType = request->getParam("type", true)->value();
         }
-
+        ledMode = LED_BUSY;
         Serial.printf("[OTA] Begin update: %s, filename: %s\n", updateType.c_str(), filename.c_str());
 
         if (updateType != "otafirmware") {
@@ -71,10 +71,8 @@ void littleUpload()
     },
     [](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
 
-      // รองรับทั้งอัปโหลดไฟล์เดียว และหลายไฟล์จากโฟลเดอร์
       if (!filename.startsWith("/")) filename = "/" + filename;
 
-      // ตรวจสอบว่ามีโฟลเดอร์ย่อยหรือไม่ ถ้ามีให้สร้างก่อน
       String path = filename;
       int lastSlash = path.lastIndexOf('/');
       if (lastSlash > 0) {

@@ -1,15 +1,90 @@
 // wifiConfig.cpp
 #include "wifiConfig.h"
 
-unsigned long last = 0;
-// int t = 500; // time led status
+const uint8_t AP_PIN = 0;           // ใช้ IO0
+const unsigned long HOLD_MS = 5000; // 5 วินาที
 
+unsigned long pressStart = 0;
+bool pressed = false;
+bool apModeActive = false;
+
+unsigned long last = 0;
 float power = 0.0;
 float lastPower = 0.0;
 unsigned long lastChangeTime = 0;            // เวลาเปลี่ยนแปลงล่าสุด (ms)
 const unsigned long timeout = 5 * 60 * 1000; // 5 นาที (300,000 ms)
 
-void wifi_config()
+void restart()
+{
+    if (wifimode == 1)
+    {
+        if (WiFi.status() != WL_CONNECTED)
+        {
+            Serial.println("Lost WiFi connection. Please Check AP or Restarting...");
+            delay(1000);
+            // Serial.println("wifimode " + String(wifimode));
+        }
+        else
+        {
+            // Serial.println("WiFi connected.");
+        }
+    }
+    //////////////////////////////////////////////////////////////////////////////////
+    power = inv.data.ActivePower;
+    if (inv.RunMode == true)
+    {
+        if (power != lastPower)
+        {
+            lastChangeTime = millis(); // อัพเดทเวลาถ้ามีการเปลี่ยน
+            lastPower = power;
+        }
+        if (millis() - lastChangeTime >= timeout)
+        {
+            Serial.println("Power value unchanged for 5 minutes. Restarting...");
+            delay(1000);
+            ESP.restart();
+        }
+    }
+    if (inv.wifi_config)
+    {
+        setupWiFiMode();
+    }
+    if (inv.ip_config)
+    {
+        setupWiFiMode();
+    }
+}
+
+void APmode()
+{
+    bool isPressed = (digitalRead(AP_PIN) == LOW);
+
+    if (isPressed && !pressed)
+    {
+        pressed = true;
+        pressStart = millis();
+    }
+    else if (!isPressed && pressed)
+    {
+        pressed = false;
+        pressStart = 0;
+    }
+
+    if (pressed && !apModeActive)
+    {
+        if (millis() - pressStart >= HOLD_MS)
+        {
+            Serial.println("Long press on IO0 → Entering AP Mode");
+            wifimode = false; // AP Mode
+            saveApSetting();
+            Serial.println("AP mode setting saved.");
+            delay(2000);
+            ESP.restart();
+        }
+    }
+}
+
+void wifi_Setup()
 {
     readNetwork();
     delay(500);
@@ -18,7 +93,6 @@ void wifi_config()
         // Station mode: ต้อง config IP ก่อน connect
         setupIPConfig();
         setupWiFiMode();
-        timeServer();
     }
     else
     {
@@ -57,47 +131,6 @@ void mac_config()
     Serial.println(macStr);
     Serial.println("UniqueId assigned to HADevice (using raw bytes)");
     Serial.println("================================");
-}
-
-void restart()
-{
-    if (wifimode == 1)
-    {
-        if (WiFi.status() != WL_CONNECTED)
-        {
-
-            Serial.println("Lost WiFi connection. Restarting...");
-            delay(1000);
-            ESP.restart();
-            //Serial.println("wifimode " + String(wifimode));
-        }
-    }
-    //////////////////////////////////////////////////////////////////////////////////
-    power = inv.data.ActivePower;
-    if (inv.RunMode == true)
-    {
-        if (power != lastPower)
-        {
-            lastChangeTime = millis(); // อัพเดทเวลาถ้ามีการเปลี่ยน
-            lastPower = power;
-        }
-        if (millis() - lastChangeTime >= timeout)
-        {
-            Serial.println("Power value unchanged for 5 minutes. Restarting...");
-            delay(1000);
-            ESP.restart();
-        }
-    }
-    if (inv.wifi_config)
-    {
-        setupWiFiMode();
-        Serial.println("inv.wifi_config" + String(inv.wifi_config));
-    }
-    if (inv.ip_config)
-    {
-        setupWiFiMode();
-        Serial.println("inv.ip_config" + String(inv.ip_config));
-    }
 }
 
 void readNetwork()
@@ -159,7 +192,6 @@ void readNetwork()
     Serial.printf("MQTT_PORT: %s\n", MQTT_PORT);
 }
 
-// ฟังก์ชันตั้งค่า WiFi Mode
 void setupWiFiMode()
 {
     if (wifimode == 0)
@@ -167,6 +199,7 @@ void setupWiFiMode()
         Serial.println("📡 Setting WiFi to ACCESS POINT mode");
 
         // ตั้งค่าโหมด AP
+        ledMode = LED_AP_MODE;
         WiFi.mode(WIFI_AP);
 
         // กำหนดค่า IP ของ AP
@@ -178,8 +211,6 @@ void setupWiFiMode()
         {
             Serial.println("❌ Failed to configure AP");
         }
-
-        // สตาร์ท AP
         if (WiFi.softAP("Hybrid Inverter", "12345678"))
         {
             Serial.println("✅ AP Started");
@@ -190,22 +221,15 @@ void setupWiFiMode()
         {
             Serial.println("❌ Failed to start AP");
         }
-
-        // ใช้ esp_netif จัดการ DHCP server
         esp_netif_t *ap_netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
         if (ap_netif)
         {
-            // stop DHCP server ก่อน (ถ้ามี)
             esp_netif_dhcps_stop(ap_netif);
-
-            // เซ็ตค่า IP ใหม่ให้ netif
             esp_netif_ip_info_t ip_info;
             ip_info.ip.addr = (uint32_t)local_IP;
             ip_info.gw.addr = (uint32_t)gateway;
             ip_info.netmask.addr = (uint32_t)subnet;
             esp_netif_set_ip_info(ap_netif, &ip_info);
-
-            // start DHCP server อีกครั้ง
             if (esp_netif_dhcps_start(ap_netif) == ESP_OK)
             {
                 Serial.println("✅ DHCP server started (esp_netif)");
@@ -224,6 +248,7 @@ void setupWiFiMode()
     if (wifimode == 1)
     {
         Serial.println("📡 Setting WiFi to STATION mode");
+        ledMode = LED_BUSY;
         WiFi.mode(WIFI_STA);
         WiFi.begin(WIFI_NAME, PASSWORD);
 
@@ -237,18 +262,19 @@ void setupWiFiMode()
         {
             Serial.println("\n✅ Connected to WiFi (STA Mode)");
             Serial.println(WiFi.localIP());
+            ledMode = LED_CONNECTED;
         }
         else
         {
             Serial.println("\n❌ Failed to connect WiFi");
+            ledMode = LED_DISCONNECTED;
         }
     }
 
     delay(1000);
-    //Serial.println("wifimode" + String(wifimode));
+    // Serial.println("wifimode" + String(wifimode));
 }
 
-// ฟังก์ชันตั้งค่า IP Config
 void setupIPConfig()
 {
     IPAddress local_IP = parseIP(IP_ADDR);
@@ -266,9 +292,7 @@ void setupIPConfig()
     else
     {
         Serial.println("🌐 Using DHCP (Obtain IP Automatically)");
-        // DHCP default
     }
-
     delay(500);
     // Serial.println("Debug ipconfig" + String(ipconfig));
 }
@@ -286,7 +310,7 @@ IPAddress parseIP(const char *ipStr)
 void showAPClients()
 {
     if (wifimode == 0)
-    { // แสดงเฉพาะ AP mode
+    { 
         wifi_sta_list_t wifi_sta_list;
         esp_netif_sta_list_t netif_sta_list;
 
@@ -317,33 +341,5 @@ void showAPClients()
         {
             Serial.println("❌ Failed to get AP sta list");
         }
-    }
-}
-
-void ledStats()
-{
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        ledIndicator(100, 2000);
-    }
-    else
-    {
-        ledIndicator(300, 300);
-    }
-}
-
-void ledIndicator(unsigned long onTime, unsigned long offTime)
-{
-    static bool ledState = false;
-    static unsigned long previousMillis = 0;
-
-    unsigned long currentMillis = millis();
-    unsigned long interval = ledState ? onTime : offTime;
-
-    if (currentMillis - previousMillis >= interval)
-    {
-        previousMillis = currentMillis;
-        ledState = !ledState;
-        digitalWrite(LED, ledState ? HIGH : LOW);
     }
 }

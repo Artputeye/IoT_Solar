@@ -11,8 +11,7 @@
 #include <ESPAsyncWebServer.h>
 #include <Update.h>
 #include <ESPmDNS.h>
-// #include <WiFiManager.h>
-// #include <WiFiMulti.h>
+#include <DNSServer.h>
 #include <ArduinoJson.h>
 #include <ArduinoHA.h>
 #include "esp_netif.h"
@@ -37,6 +36,8 @@
 #include "iotHA.h"
 #include "simulate.h"
 #include "gridOperation.h"
+#include "ledStatus.h"
+#include "ntpServer.h"
 
 /////////////////////////////////////////////////////////////////////////
 #define WDT_TIMEOUT 120
@@ -47,14 +48,11 @@
 // declare global object out source cpp
 // extern class object;
 extern AsyncWebServer server;
-// extern WiFiManager wm;
 
 extern WiFiClient client;
 extern HADevice device;
 extern HAMqtt mqtt;
 extern HASwitch grid;
-
-// extern WiFiMulti Multi;
 
 extern invCommand inv;
 

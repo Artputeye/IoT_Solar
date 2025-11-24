@@ -12,7 +12,6 @@ void fileManage()
     listAllFilesAndFolders(targetDirectory);
     inv.dir = false;
   }
-
   if (inv.format)
   {
     LittleFS.format();
@@ -181,7 +180,6 @@ bool clearEnergyFile()
 
   energy_kWh = 0.0;
 
-  // เขียนไฟล์ใหม่ด้วยค่า 0.0
   if (!saveEnergyToFile())
   {
     Serial.println("⚠️ Warning: Failed to create new cleared file, retrying...");
@@ -193,13 +191,11 @@ bool clearEnergyFile()
     }
   }
 
-  // ตรวจสอบหลังรีเซ็ต
   if (!loadEnergyFromFile())
   {
     Serial.println("⚠️ Warning: Reload after clear failed");
     return false;
   }
-
   if (energy_kWh == 0.0)
   {
     Serial.println("✅ energy_kWh cleared successfully (0.0 kWh)");
@@ -212,49 +208,106 @@ bool clearEnergyFile()
   }
 }
 
-bool loadSetting()
+///////////////////////////////////////////////////////////////////////////////
+bool loadJsonFile(const char *filename, JsonDocument &doc)
 {
-  const char *filename = "/setting.json";
-
-  Serial.println("📂 Loading Grid Tie Auto from setting.json...");
-
+  Serial.printf("📂 Loading JSON from %s ...\n", filename);
   if (!LittleFS.exists(filename))
   {
-    Serial.println("⚠️ File not found: setting.json");
-    inv.gridOpr = 0;
+    Serial.printf("⚠️ File not found: %s\n", filename);
     return false;
   }
-
   File file = LittleFS.open(filename, "r");
   if (!file)
   {
-    Serial.println("❌ Failed to open setting.json for reading");
-    inv.gridOpr = 0;
+    Serial.printf("Failed to open %s for reading\n", filename);
     return false;
   }
-
-  JsonDocument doc;
   DeserializationError error = deserializeJson(doc, file);
   file.close();
-
   if (error)
   {
-    Serial.printf("❌ Failed to parse JSON: %s\n", error.c_str());
-    inv.gridOpr = 0;
+    Serial.printf("Failed to parse JSON (%s): %s\n",
+                  filename, error.c_str());
     return false;
   }
+  Serial.printf("JSON loaded successfully from %s\n", filename);
+  return true;
+}
 
-  // อ่านค่า Grid Tie Auto
-  if (doc["Grid Tie Auto"].is<int>() || doc["Grid Tie Auto"].is<const char *>())
+///////////////////////////////////////////////////////////////////////////////
+bool saveJsonFile(const char *filename, const JsonDocument &doc)
+{
+  Serial.printf("💾 Saving JSON to %s ...\n", filename);
+  if (LittleFS.exists(filename))
   {
-    inv.gridOpr = atoi(doc["Grid Tie Auto"]);
-    Serial.printf("✅ Grid Tie Auto loaded: %d\n", inv.gridOpr);
+    LittleFS.remove(filename);
+  }
+  File file = LittleFS.open(filename, "w");
+  if (!file)
+  {
+    Serial.printf("Failed to open %s for writing\n", filename);
+    return false;
+  }
+  if (serializeJson(doc, file) == 0)
+  {
+    Serial.printf("Failed to write JSON to %s\n", filename);
+    file.close();
+    return false;
+  }
+  file.close();
+  Serial.printf("JSON saved successfully to %s\n", filename);
+  return true;
+}
+
+bool loadSetting()
+{
+    JsonDocument doc;
+    if (loadJsonFile("/networkconfig.json", doc))
+    {
+        Serial.println("📂 Loaded networkconfig.json");
+        wifimode = atoi(doc["wifi_mode"] | "0");
+    }
+    else
+    {
+        Serial.println("❌ Failed to load networkconfig.json");
+        wifimode = 0;   // default
+    }
+
+    if (loadJsonFile("/setting.json", doc))
+    {
+        Serial.println("📂 Loaded setting.json");
+        inv.gridOpr = atoi(doc["Grid Tie Auto"] | "0");
+        gridCutOff = atoi(doc["gridCutOff"] | "");
+        gridStart = atoi(doc["gridStart"] | "");
+    }
+    else
+    {
+        Serial.println("❌ Failed to load setting.json");
+        inv.gridOpr = 0; // default
+    }
+   
+    Serial.printf("🔧 Grid Settings Loaded:\n");
+    Serial.printf("   - Wifi Mode         : %d\n", wifimode);
+    Serial.printf("   - Grid Tie Auto     : %d\n", inv.gridOpr);
+    Serial.printf("   - Grid Cut-Off Date : %d\n", gridCutOff);
+    Serial.printf("   - Grid Start Date   : %d\n", gridStart);
+
+    return true;
+}
+
+bool saveApSetting()
+{
+  JsonDocument doc;
+  doc["wifi_mode"] = wifimode;
+  if (saveJsonFile("/networkconfig.json", doc))
+  {
+    Serial.println("💾 setting.json saved successfully");
     return true;
   }
   else
   {
-    Serial.println("⚠️ Missing key: \"Grid Tie Auto\" — default 0");
-    inv.gridOpr = 0;
+    Serial.println("❌ Failed to save setting.json");
     return false;
   }
 }

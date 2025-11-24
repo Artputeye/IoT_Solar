@@ -1,11 +1,8 @@
 #include "gridOperation.h"
 
-const char *ntpServer = "pool.ntp.org";
-const long gmtOffset_sec = 7 * 3600;
-const int daylightOffset_sec = 0;
-int dateNow = 0;
 //////////////////////////////////////////////////////////////////////////////////
-struct tm timeinfo;
+int gridCutOff;
+int gridStart;
 float energy_kWh = 0.0;
 float gridPower = 0.0;
 const float GRID_ON_THRESHOLD = 2.0;
@@ -24,50 +21,12 @@ const unsigned long qrateInterval = 10000;
 const unsigned long resInterval = 100;
 const unsigned long fileInterval = 60 * 1000;
 const unsigned long gridOprInterval = 1000;
-const unsigned long gridCheckInterval = 900000; // 15 นาที (15 * 60 * 1000 ms)
+const unsigned long gridCheckInterval = 1 * 60 * 1000; //(1 * 60 * 1000 ms)
 const unsigned long energyInterval = 1000;
 /////////////////////////////////////////////////////////////////////////////////
 bool toggle;
 bool gridState = false;
 /////////////////////////////////////////////////////////////////////////////////
-void timeServer()
-{
-    if (wifimode == 1)
-    {
-        if (WiFi.status() == WL_CONNECTED)
-        {
-            configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-            timeRefresh();
-            Serial.println("Syncing time from NTP...");
-        }
-    }
-}
-
-void timeRefresh()
-{
-    int retry = 0;
-    if (wifimode == 1)
-    {
-        if (WiFi.status() == WL_CONNECTED)
-        {
-            while (!getLocalTime(&timeinfo) && retry < 3)
-            {
-                Serial.print(".");
-                delay(1000);
-                retry++;
-            }
-
-            if (!getLocalTime(&timeinfo))
-            {
-                Serial.println("\n❌ Failed to obtain time (still no NTP response)");
-            }
-            else
-            {
-                dateNow = timeinfo.tm_mday;
-            }
-        }
-    }
-}
 
 void gridRun()
 {
@@ -164,10 +123,32 @@ void gridOperation()
     if (millis() - lastGridCheck > gridCheckInterval)
     {
         lastGridCheck = millis();
-        
+        Serial.println("--- Grid Operation Check ---");
+        Serial.println("Current Date: " + String(timeinfo.tm_mday));
+
+        ///////////////////////////////////////////////
+        Serial.printf("tm_mday=%d, gridCutOff=%d, gridStart=%d\n",
+                      timeinfo.tm_mday, gridCutOff, gridStart);
+
+        wsJsonInverter( String("tm_mday=") + String(timeinfo.tm_mday) +
+                         String(", gridCutOff=") + String(gridCutOff) +
+                         String(", gridStart=") + String(gridStart));
+
+        if (timeinfo.tm_mday >= gridCutOff && timeinfo.tm_mday <= gridStart)
+        {
+            Serial.println(" >>>>> ENTER DATE BLOCK <<<<<");
+        }
+        else
+        {
+            Serial.println("NOT in date range");
+        }
+        /////////////////////////////////////////////////
+
         if (timeinfo.tm_mday >= gridCutOff && timeinfo.tm_mday <= gridStart)
         {
             inv.valueToinv("GridTieOperation", 0);
+            // wsJsonSerial("Grid OFF (within cut-off period)");
+            Serial.println("🔴 Grid OFF (within cut-off period)");
             return;
         }
 
