@@ -12,6 +12,8 @@ void TaskNTP(void *pvParameters); // Task สำหรับ sync NTP
 
 void setup()
 {
+  pinMode(LED, OUTPUT);
+  digitalWrite(LED, HIGH);
   // === Serial Setup ===
   Serial.begin(115200);
   while (!Serial)
@@ -23,10 +25,7 @@ void setup()
     delay(300);
   }
   Serial.println();
-
   Serial2.begin(2400, SERIAL_8N1, RX_pin, TX_pin);
-  pinMode(LED, OUTPUT);
-  ledIndicator(200, 200);
   Serial.println("Serial Setup Completed");
   delay(300);
 
@@ -132,6 +131,7 @@ void TaskSub(void *pvParameters) // CPU Core1
     wsloop();
     restart();
     APmode();
+
     if ((millis() - lastStack) > 10000)
     {
       lastStack = millis();
@@ -160,13 +160,12 @@ void TaskNTP(void *pvParameters)
   unsigned long lastNtp = 0;
   while (1)
   {
-    if ((millis() - lastNtp) > 100000)
+    if ((millis() - lastNtp) > 60000)
     {
       lastNtp = millis();
       UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
-      showAPClients();
+      ntpLoop(); // Non-blocking
     }
-    // ntpLoop(); // Non-blocking
-    vTaskDelay(pdMS_TO_TICKS(20)); // ทุก 200 ms เช็คครั้ง (ไม่กิน core)
+    vTaskDelay(pdMS_TO_TICKS(200)); // ทุก 200 ms เช็คครั้ง (ไม่กิน core)
   }
 }

@@ -1,4 +1,3 @@
-// webHandle.cpp
 #include "webHandle.h"
 const char *PARAM_MESSAGE PROGMEM = "plain";
 
@@ -79,14 +78,11 @@ void JsonSetting() // Control Route
         request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
         return;
       }
-
-      // ✅ ตรวจสอบ key ที่มีใน JSON ก่อนใช้
       String setting   = doc["setting"].is<String>()     ? doc["setting"].as<String>()     : "";
       uint16_t value   = doc["value"].is<uint16_t>()     ? doc["value"].as<uint16_t>()     : 0;
       gridCutOff   = doc["gridCutOff"].is<int>()     ? doc["gridCutOff"].as<int>()     : -1;
       gridStart    = doc["gridStart"].is<int>()      ? doc["gridStart"].as<int>()      : -1;
 
-      // ✅ แสดงผลและเรียกใช้งานเฉพาะเมื่อมีข้อมูล
       if (setting != "")
       {
         inv.valueToinv(setting, value);
@@ -113,7 +109,6 @@ void JsonSetting() // Control Route
       request->send(200, "application/json", response); });
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// COMMAND SETTING //////////////////////////////////////
 void cmdSetting() // control route
 {
@@ -131,7 +126,6 @@ void cmdSetting() // control route
     request->send(200, "text/plain", "POST: " + message); });
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// GENERAL SETTING //////////////////////////////////////
 
 void getSetting() // API: ดึง JSON จาก littleFS แล้วส่ง Setting.json ไปยัง Client
@@ -168,7 +162,6 @@ void getSetting() // API: ดึง JSON จาก littleFS แล้วส่�
     request->send(200, "application/json", jsonResponse); });
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// SAVE SETTING /////////////////////////////////////////
 void saveSetting() // API: รับ JSON จาก Client แล้วบันทึกไฟล์ Setting.json ไปยัง littleFS
 {
@@ -205,9 +198,7 @@ void saveSetting() // API: รับ JSON จาก Client แล้วบัน
   // ESP.restart();
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// BATTERY SETTING //////////////////////////////////////
-
 void getbatSetting() // API: ดึง JSON จาก littleFS แล้วส่ง battery.json ไปยัง Client
 {
   server.on("/getbattsetting", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -239,7 +230,6 @@ void getbatSetting() // API: ดึง JSON จาก littleFS แล้วส�
     request->send(200, "application/json", jsonResponse); });
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// BATTERY SETTING //////////////////////////////////////
 void savebatSetting() // API: รับ JSON จาก Client แล้วบันทึกไฟล์ battery.json ไปยัง littleFS
 {

@@ -38,7 +38,7 @@ void gridRun()
             inv.cmd_inv("QPIGS");
         }
         inv.Response();
-        // wsJsonInverter(inv.invData);
+        wsJsonInverter(inv.invData);
         iotHArun();
         simulateData();
     }
@@ -127,16 +127,20 @@ void gridOperation()
         Serial.println("Current Date: " + String(timeinfo.tm_mday));
 
         ///////////////////////////////////////////////
-        Serial.printf("[TEST] tm_mday=%d, gridCutOff=%d, gridStart=%d\n",
+        Serial.printf("tm_mday=%d, gridCutOff=%d, gridStart=%d\n",
                       timeinfo.tm_mday, gridCutOff, gridStart);
+
+        wsJsonInverter( String("tm_mday=") + String(timeinfo.tm_mday) +
+                         String(", gridCutOff=") + String(gridCutOff) +
+                         String(", gridStart=") + String(gridStart));
 
         if (timeinfo.tm_mday >= gridCutOff && timeinfo.tm_mday <= gridStart)
         {
-            Serial.println("[TEST] >>>>> ENTER DATE BLOCK <<<<<");
+            Serial.println(" >>>>> ENTER DATE BLOCK <<<<<");
         }
         else
         {
-            Serial.println("[TEST] NOT in date range");
+            Serial.println("NOT in date range");
         }
         /////////////////////////////////////////////////
 

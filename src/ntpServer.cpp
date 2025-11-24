@@ -14,7 +14,7 @@ const char *ntpList[] = {
 int ntpIndex = 0;
 const int ntpCount = sizeof(ntpList) / sizeof(ntpList[0]);
 
-bool hasSyncedOnce = false; // เคยซิงได้แล้วหรือยัง
+bool hasSyncedOnce = false; 
 unsigned long lastTry = 0;
 const unsigned long retryDelay = 2000; // 2 วินาทีต่อ 1 server (ไม่ block)
 
@@ -22,12 +22,13 @@ void initNTP()
 {
     configTime(7 * 3600, 0, ntpList[ntpIndex]);
     Serial.printf("Initial NTP server: %s\n", ntpList[ntpIndex]);
+    delay(3000);
+    ntpLoop();
 }
 
-// เช็คเฉพาะตอนที่เวลาไม่อัพเดต
 void ntpLoop()
 {
-    // 1) ถ้ายังมีเวลาอยู่ → ไม่ต้อง sync
+   
     if (getLocalTime(&timeinfo))
     {
         if (!hasSyncedOnce)
