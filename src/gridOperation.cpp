@@ -130,26 +130,23 @@ void gridOperation()
         Serial.printf("tm_mday=%d, gridCutOff=%d, gridStart=%d\n",
                       timeinfo.tm_mday, gridCutOff, gridStart);
 
-        wsJsonInverter( String("tm_mday=") + String(timeinfo.tm_mday) +
-                         String(", gridCutOff=") + String(gridCutOff) +
-                         String(", gridStart=") + String(gridStart));
+        wsJsonInverter(String("tm_mday=") + String(timeinfo.tm_mday) +
+                       String(", gridCutOff=") + String(gridCutOff) +
+                       String(", gridStart=") + String(gridStart));
 
-        if (timeinfo.tm_mday >= gridCutOff && timeinfo.tm_mday <= gridStart)
-        {
-            Serial.println(" >>>>> ENTER DATE BLOCK <<<<<");
-        }
-        else
-        {
-            Serial.println("NOT in date range");
-        }
         /////////////////////////////////////////////////
 
         if (timeinfo.tm_mday >= gridCutOff && timeinfo.tm_mday <= gridStart)
         {
             inv.valueToinv("GridTieOperation", 0);
-            // wsJsonSerial("Grid OFF (within cut-off period)");
             Serial.println("🔴 Grid OFF (within cut-off period)");
+            wsJsonSerial("Grid OFF (within cut-off period)");
+            Serial.println(" >>>>> ENTER DATE BLOCK <<<<<");
             return;
+        }
+                else
+        {
+            Serial.println("NOT in date range");
         }
 
         if (inv.gridOpr)
@@ -159,18 +156,22 @@ void gridOperation()
                 inv.valueToinv("GridTieOperation", 0);
                 gridState = false;
                 Serial.println("🔴 Grid OFF (energy < 1.0 kWh)");
+                wsJsonSerial("Grid OFF (energy < 1.0 kWh)");
             }
             else if (energy_kWh > GRID_ON_THRESHOLD)
             {
                 inv.valueToinv("GridTieOperation", 1);
                 gridState = true;
                 Serial.println("🟢 Grid ON (energy > 2.0 kWh)");
+                wsJsonSerial("Grid ON (energy > 2.0 kWh)");
             }
             else
             {
                 inv.valueToinv("GridTieOperation", gridState ? 1 : 0);
                 Serial.printf("⚙️ Confirming Grid %s (energy = %.3f)\n",
                               gridState ? "ON" : "OFF", energy_kWh);
+                wsJsonSerial(String("⚙️ Confirming Grid ") + (gridState ? "ON" : "OFF") +
+                             String(" (energy = ") + String(energy_kWh, 3) + String(" kWh)"));
             }
         }
     }
