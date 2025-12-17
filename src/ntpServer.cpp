@@ -1,80 +1,89 @@
 #include "ntpServer.h"
 
-struct tm timeinfo;
-int dateNow = 0;
+DateTimeCache rtc;
 
-// รายชื่อ NTP server สำรอง
-const char *ntpList[] = {
-    "time.google.com",
-    "time1.google.com",
-    "time2.google.com",
-    "time3.google.com",
-    "time4.google.com"};
+volatile bool ntpSynced = false;
+volatile bool needNtpSync = false;
 
-int ntpIndex = 0;
-const int ntpCount = sizeof(ntpList) / sizeof(ntpList[0]);
+TaskHandle_t ntpTaskHandle = NULL;
+TimerHandle_t ntpResyncTimer = NULL;
 
-bool hasSyncedOnce = false; 
-unsigned long lastTry = 0;
-const unsigned long retryDelay = 2000; // 2 วินาทีต่อ 1 server (ไม่ block)
-
-void initNTP()
+void NTPbegin()
 {
-    configTime(7 * 3600, 0, ntpList[ntpIndex]);
-    Serial.printf("Initial NTP server: %s\n", ntpList[ntpIndex]);
-    delay(3000);
-    ntpLoop();
+    ntpResyncTimer = xTimerCreate(
+        "ntpResync",
+        pdMS_TO_TICKS(86400000), // 1 วัน
+        pdTRUE,
+        NULL,
+        ntpResyncCallback);
+
+    xTimerStart(ntpResyncTimer, 0);
 }
 
-void ntpLoop()
+void TaskNTP(void *pvParameters)
 {
-   
-    if (getLocalTime(&timeinfo))
+    struct tm t;   // ✅ ต้องประกาศตรงนี้
+
+    while (1)
     {
-        if (!hasSyncedOnce)
-            Serial.println("NTP sync complete (first sync)");
-
-        hasSyncedOnce = true;
-        dateNow = timeinfo.tm_mday;
-        return;
-    }
-
-    // 2) เวลาหาย / ยังไม่เคยซิง ต้องเริ่ม sync
-    unsigned long now = millis();
-    if (now - lastTry < retryDelay)
-        return; // 2 วินาที ค่อยลองใหม่
-    lastTry = now;
-
-    Serial.printf("NTP failed → try server: %s\n", ntpList[ntpIndex]);
-
-    // Poll แบบ non-blocking (เช็ค 200 ms)
-    unsigned long t0 = millis();
-    bool ok = false;
-
-    while (millis() - t0 < 200)
-    {
-        if (getLocalTime(&timeinfo))
+        if (WiFi.status() == WL_CONNECTED)
         {
-            ok = true;
-            break;
+            if (getLocalTime(&t, 10))
+            {
+                updateDateCache(t);   // ✅ ส่ง t เข้าไป
+
+                ntpSynced = true;
+                Serial.println("✅ NTP synced → task stop");
+
+                ntpTaskHandle = NULL;
+                vTaskDelete(NULL);
+            }
         }
-        vTaskDelay(pdMS_TO_TICKS(20)); // ไม่ block core
+        vTaskDelay(pdMS_TO_TICKS(3000));
     }
+}
 
-    if (ok)
+void ntpResyncCallback(TimerHandle_t xTimer)
+{
+    needNtpSync = true;
+}
+
+void timeUpdade()
+{
+    time_t now = time(NULL);
+    struct tm t;
+    localtime_r(&now, &t);
+    updateDateCache(t);
+}
+
+void updateDateCache(const struct tm &t)
+{
+    rtc.day    = t.tm_mday;
+    rtc.month  = t.tm_mon + 1;
+    rtc.year   = t.tm_year + 1900;
+    rtc.hour   = t.tm_hour;
+    rtc.minute = t.tm_min;
+    rtc.second = t.tm_sec;
+}
+
+void resyncTime()
+{
+    if (needNtpSync && WiFi.status() == WL_CONNECTED)
     {
-        Serial.printf("NTP synced via: %s\n", ntpList[ntpIndex]);
-        hasSyncedOnce = true;
-        dateNow = timeinfo.tm_mday;
-        return;
+        needNtpSync = false;
+        ntpSynced = false;
+
+        if (ntpTaskHandle == NULL)
+        {
+            Serial.println("⏰ NTP resync");
+            xTaskCreatePinnedToCore(
+                TaskNTP,
+                "TaskNTP",
+                4096,
+                NULL,
+                1,
+                &ntpTaskHandle,
+                1);
+        }
     }
-
-    // 3) ถ้า server นี้ยังไม่ตอบ → สลับตัวถัดไป
-    ntpIndex++;
-    if (ntpIndex >= ntpCount)
-        ntpIndex = 0;
-
-    Serial.printf("Switching to next NTP server: %s\n", ntpList[ntpIndex]);
-
-    configTime(7 * 3600, 0, ntpList[ntpIndex]);
 }

@@ -22,7 +22,7 @@ const unsigned long resInterval = 100;
 const unsigned long fileInterval = 60 * 1000;
 const unsigned long gridOprInterval = 1000;
 const unsigned long gridCheckInterval = 1 * 60 * 1000; //(1 * 60 * 1000 ms)
-const unsigned long energyInterval = 1000;
+
 /////////////////////////////////////////////////////////////////////////////////
 bool toggle;
 bool gridState = false;
@@ -42,6 +42,7 @@ void gridRun()
         iotHArun();
         simulateData();
     }
+
     if ((millis() - lastQrate) > qrateInterval) // Question Rate to Inverter
     {
         lastQrate = millis();
@@ -58,6 +59,7 @@ void gridRun()
         }
         toggle = !toggle;
     }
+
     if ((millis() - lastRespons) > resInterval) // Respons from Inverter
     {
         lastRespons = millis();
@@ -78,7 +80,7 @@ void gridOperation()
     gridPower = outputPower - pvPower;
 
     static bool clearedToday = false;
-    if (timeinfo.tm_hour == 18 && timeinfo.tm_min == 0 && !clearedToday)
+    if (rtc.hour == 18 && rtc.minute == 0 && !clearedToday)
     {
         Serial.println("🕕 18:00 detected — initiating daily reset...");
         bool success = clearEnergyFile();
@@ -98,7 +100,7 @@ void gridOperation()
         clearedToday = true;
     }
 
-    if (timeinfo.tm_hour == 0 && timeinfo.tm_min == 0)
+    if (rtc.hour == 0 && rtc.minute == 0)
     {
         clearedToday = false;
     }
@@ -108,6 +110,7 @@ void gridOperation()
     if (millis() - lastGridOpr > gridOprInterval) // debug grid operation
     {
         lastGridOpr = millis();
+        timeUpdade();
         if (inv.test)
         {
             Serial.println("Grid Operate : " + String(inv.gridOpr));
@@ -124,19 +127,20 @@ void gridOperation()
     {
         lastGridCheck = millis();
         Serial.println("--- Grid Operation Check ---");
-        Serial.println("Current Date: " + String(timeinfo.tm_mday));
+        Serial.println("Current Date: " + String(rtc.day));
 
         ///////////////////////////////////////////////
         Serial.printf("tm_mday=%d, gridCutOff=%d, gridStart=%d\n",
-                      timeinfo.tm_mday, gridCutOff, gridStart);
+                      rtc.day, gridCutOff, gridStart);
 
-        wsJsonInverter(String("tm_mday=") + String(timeinfo.tm_mday) +
-                       String(", gridCutOff=") + String(gridCutOff) +
-                       String(", gridStart=") + String(gridStart));
+        wsJsonInverter(String("tm_mday=") + String(rtc.day) +
+                       String(" gridCutOff=") + String(gridCutOff) +
+                       String(" gridStart=") + String(gridStart) +
+                       String(" tm_hour=") + String(rtc.hour) + String(" tm_min=") + String(rtc.minute));
 
         /////////////////////////////////////////////////
 
-        if (timeinfo.tm_mday >= gridCutOff && timeinfo.tm_mday <= gridStart)
+        if (rtc.day >= gridCutOff && rtc.day <= gridStart)
         {
             inv.valueToinv("GridTieOperation", 0);
             Serial.println("🔴 Grid OFF (within cut-off period)");
@@ -144,7 +148,7 @@ void gridOperation()
             Serial.println(" >>>>> ENTER DATE BLOCK <<<<<");
             return;
         }
-                else
+        else
         {
             Serial.println("NOT in date range");
         }
