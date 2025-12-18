@@ -14,6 +14,7 @@ void setup()
 {
   pinMode(LED, OUTPUT);
   digitalWrite(LED, HIGH);
+  pinMode(AP_PIN, INPUT_PULLUP);
   // === Serial Setup ===
   Serial.begin(115200);
   while (!Serial)
@@ -40,7 +41,10 @@ void setup()
 
   // === Device Configuration ===
   mac_config();
+  WiFi.onEvent(WiFiEvent);
   wifi_Setup();
+  /////////////////////////////////////////////////////
+
   iotHAsetup();
   Serial.println("Home Assistant Initialized");
   delay(300);
@@ -63,7 +67,7 @@ void setup()
   delay(300);
 
   // === NTP Setup ===
-  initNTP();
+  NTPbegin();
   Serial.println("NTP Server Configured");
   delay(300);
 
@@ -84,9 +88,6 @@ void setup()
       TaskSub, "TaskSub", 3000, NULL, 1, &xHandleSub, 1);
   xTaskCreatePinnedToCore(
       TaskLED, "TaskLED", 2048, NULL, 1, &xHandleLED, 1);
-  xTaskCreatePinnedToCore(
-      TaskNTP, "TaskNTP", 4096, NULL, 1, &xHandleNTP, 1); // core1 หรือ core0 ตามต้องการ
-  esp_task_wdt_add(xHandleNTP);
 
   // === Add tasks to Watchdog ===
   esp_task_wdt_add(xHandleMain);
@@ -111,10 +112,12 @@ void TaskMain(void *pvParameters) // CPU Core0
     // Main function
     gridRun();
     gridOperation();
+    resyncTime();
     if ((millis() - last) > 10000)
     {
       UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
     }
+    
     esp_task_wdt_reset();
     vTaskDelay(pdMS_TO_TICKS(10));
   }
@@ -155,17 +158,3 @@ void TaskLED(void *pvParameters)
   }
 }
 
-void TaskNTP(void *pvParameters)
-{
-  unsigned long lastNtp = 0;
-  while (1)
-  {
-    if ((millis() - lastNtp) > 60000)
-    {
-      lastNtp = millis();
-      UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
-      ntpLoop(); // Non-blocking
-    }
-    vTaskDelay(pdMS_TO_TICKS(200)); // ทุก 200 ms เช็คครั้ง (ไม่กิน core)
-  }
-}

@@ -1,6 +1,8 @@
 // wifiConfig.cpp
 #include "wifiConfig.h"
 
+static bool wifiConfigured = false;
+
 const uint8_t AP_PIN = 0;           // ใช้ IO0
 const unsigned long HOLD_MS = 5000; // 5 วินาที
 
@@ -16,19 +18,7 @@ const unsigned long timeout = 5 * 60 * 1000; // 5 นาที (300,000 ms)
 
 void restart()
 {
-    if (wifimode == 1)
-    {
-        if (WiFi.status() != WL_CONNECTED)
-        {
-            Serial.println("Lost WiFi connection. Please Check AP or Restarting...");
-            delay(1000);
-            // Serial.println("wifimode " + String(wifimode));
-        }
-        else
-        {
-            // Serial.println("WiFi connected.");
-        }
-    }
+
     //////////////////////////////////////////////////////////////////////////////////
     power = inv.data.ActivePower;
     if (inv.RunMode == true)
@@ -41,16 +31,14 @@ void restart()
         if (millis() - lastChangeTime >= timeout)
         {
             Serial.println("Power value unchanged for 5 minutes. Restarting...");
-            delay(1000);
+            vTaskDelay(pdMS_TO_TICKS(1000));
             ESP.restart();
         }
     }
-    if (inv.wifi_config)
+
+    if (!wifiConfigured && (inv.wifi_config || inv.ip_config))
     {
-        setupWiFiMode();
-    }
-    if (inv.ip_config)
-    {
+        wifiConfigured = true;
         setupWiFiMode();
     }
 }
@@ -78,7 +66,7 @@ void APmode()
             wifimode = false; // AP Mode
             saveApSetting();
             Serial.println("AP mode setting saved.");
-            delay(2000);
+            vTaskDelay(pdMS_TO_TICKS(2000));
             ESP.restart();
         }
     }
@@ -250,29 +238,11 @@ void setupWiFiMode()
         Serial.println("📡 Setting WiFi to STATION mode");
         ledMode = LED_BUSY;
         WiFi.mode(WIFI_STA);
+        WiFi.setSleep(false); // ⭐ สำคัญ
         WiFi.begin(WIFI_NAME, PASSWORD);
-
-        unsigned long startAttempt = millis();
-        while (WiFi.status() != WL_CONNECTED && millis() - startAttempt < 10000)
-        {
-            delay(500);
-            Serial.print(".");
-        }
-        if (WiFi.status() == WL_CONNECTED)
-        {
-            Serial.println("\n✅ Connected to WiFi (STA Mode)");
-            Serial.println(WiFi.localIP());
-            ledMode = LED_CONNECTED;
-        }
-        else
-        {
-            Serial.println("\n❌ Failed to connect WiFi");
-            ledMode = LED_DISCONNECTED;
-        }
     }
 
     delay(1000);
-    // Serial.println("wifimode" + String(wifimode));
 }
 
 void setupIPConfig()
@@ -310,7 +280,7 @@ IPAddress parseIP(const char *ipStr)
 void showAPClients()
 {
     if (wifimode == 0)
-    { 
+    {
         wifi_sta_list_t wifi_sta_list;
         esp_netif_sta_list_t netif_sta_list;
 
@@ -341,5 +311,79 @@ void showAPClients()
         {
             Serial.println("❌ Failed to get AP sta list");
         }
+    }
+}
+
+void WiFiEvent(WiFiEvent_t event)
+{
+    switch (event)
+    {
+    case ARDUINO_EVENT_WIFI_STA_START:
+        Serial.println("📡 WiFi STA started");
+        break;
+
+    case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+        Serial.print("✅ WiFi connected, IP: ");
+        Serial.println(WiFi.localIP());
+
+        ledMode = LED_CONNECTED;
+
+        // ===== NTP init =====
+        Serial.println("⏱ Init NTP");
+
+        configTime(
+            7 * 3600,
+            0,
+            "time.google.com",
+            "time1.google.com",
+            "time2.google.com");
+
+        ntpSynced = false;
+
+        if (ntpTaskHandle == NULL)
+        {
+            xTaskCreatePinnedToCore(
+                TaskNTP,
+                "TaskNTP",
+                4096,
+                NULL,
+                1,
+                &ntpTaskHandle,
+                1);
+        }
+
+        // ===== MQTT / Service start =====
+        // mqtt.connect(); (ถ้ามี)
+
+        break;
+
+    case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+        Serial.println("⚠️ WiFi disconnected");
+
+        ledMode = LED_DISCONNECTED;
+
+        // ป้องกัน reconnect ถี่
+        static unsigned long lastRetry = 0;
+        if (millis() - lastRetry > 5000)
+        {
+            lastRetry = millis();
+            Serial.println("🔄 Reconnecting WiFi...");
+            if (WiFi.getMode() == WIFI_STA)
+            {
+                WiFi.reconnect();
+            }
+        }
+        break;
+
+    case ARDUINO_EVENT_WIFI_STA_LOST_IP:
+        Serial.println("⚠️ WiFi lost IP");
+        break;
+
+    case ARDUINO_EVENT_WIFI_STA_STOP:
+        Serial.println("🛑 WiFi stopped");
+        break;
+
+    default:
+        break;
     }
 }
