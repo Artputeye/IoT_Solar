@@ -362,7 +362,7 @@ button.icon-btn:focus {
 }
 
 .card-vertical {
-  display: flex;
+  /* display: flex; */
   flex-direction: column;
 }
 
@@ -374,9 +374,10 @@ button.icon-btn:focus {
 
 .grid-control {
   height: 30px;
-  margin: 5px;
-  padding: 0px 10px;
-  width: 100px;
+  margin-right: 5px;
+  padding-left: 10px;
+  width: 70%;
+  min-width: 70px;
   border: 1px solid #ccc;
   border-radius: 6px;
 }
