@@ -106,6 +106,7 @@ void loop()
 void TaskMain(void *pvParameters) // CPU Core0
 {
   unsigned long last = 0;
+  unsigned long lastDiagnostic = 0;
   bool toggle = false;
   while (1)
   {
@@ -113,8 +114,17 @@ void TaskMain(void *pvParameters) // CPU Core0
     gridRun();
     gridOperation();
     resyncTime();
+
+    // Home Assistant Diagnostic update every 60 seconds
+    if ((millis() - lastDiagnostic) > 60*1000)
+    {
+      lastDiagnostic = millis();
+      HA_Diagnostic();
+    }
+
     if ((millis() - last) > 10000)
     {
+      last = millis();
       UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
     }
     

@@ -3,6 +3,7 @@
 #include "globals.h"
 
 extern const uint8_t AP_PIN;
+extern char MacAddr[18];
 
 void restart();
 void APmode();

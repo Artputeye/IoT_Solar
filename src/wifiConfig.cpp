@@ -1,6 +1,6 @@
-// wifiConfig.cpp
 #include "wifiConfig.h"
 
+char MacAddr[18];
 static bool wifiConfigured = false;
 
 const uint8_t AP_PIN = 0;           // ใช้ IO0
@@ -99,8 +99,7 @@ void mac_config()
     // กำหนด Unique ID ให้ HADevice (ใช้ MAC โดยตรง)
     device.setUniqueId(mac, sizeof(mac));
 
-    char macStr[18];
-    snprintf(macStr, sizeof(macStr),
+    snprintf(MacAddr, sizeof(MacAddr),
              "%02X:%02X:%02X:%02X:%02X:%02X",
              mac[0], mac[1], mac[2],
              mac[3], mac[4], mac[5]);
@@ -116,7 +115,7 @@ void mac_config()
     Serial.println();
 
     Serial.print("ESP32 MAC String   : ");
-    Serial.println(macStr);
+    Serial.println(MacAddr);
     Serial.println("UniqueId assigned to HADevice (using raw bytes)");
     Serial.println("================================");
 }
@@ -364,13 +363,13 @@ void WiFiEvent(WiFiEvent_t event)
 
         // ป้องกัน reconnect ถี่
         static unsigned long lastRetry = 0;
-        if (millis() - lastRetry > 5000)
+        if (millis() - lastRetry > 5*60*1000)
         {
             lastRetry = millis();
             Serial.println("🔄 Reconnecting WiFi...");
             if (WiFi.getMode() == WIFI_STA)
             {
-                WiFi.reconnect();
+                ESP.restart();
             }
         }
         break;

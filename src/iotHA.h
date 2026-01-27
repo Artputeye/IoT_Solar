@@ -34,7 +34,7 @@ extern HASensorNumber BusVoltage;
 extern HASensorNumber BattVoltage;
 extern HASensorNumber Temp;
 
-
+void HA_Diagnostic();
 void iotHArun();
 void iotHAsetup();
 

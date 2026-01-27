@@ -31,4 +31,7 @@ void timeUpdade();
 void updateDateCache(const struct tm &t);
 void resyncTime();
 
+unsigned long getUptimeSeconds();
+String getUptimeString();
+
 #endif

@@ -1,6 +1,8 @@
 #include "ntpServer.h"
-
 DateTimeCache rtc;
+
+unsigned long lastMillis = 0;
+unsigned long uptimeSeconds = 0;
 
 volatile bool ntpSynced = false;
 volatile bool needNtpSync = false;
@@ -86,4 +88,31 @@ void resyncTime()
                 1);
         }
     }
+}
+
+unsigned long getUptimeSeconds() {
+    unsigned long currentMillis = millis();
+
+    // รองรับ millis overflow
+    uptimeSeconds += (currentMillis - lastMillis) / 1000;
+    lastMillis = currentMillis;
+
+    return uptimeSeconds;
+}
+
+String getUptimeString() {
+    unsigned long s = uptimeSeconds;
+
+    unsigned long days = s / 86400;
+    s %= 86400;
+    unsigned long hours = s / 3600;
+    s %= 3600;
+    unsigned long minutes = s / 60;
+    unsigned long seconds = s % 60;
+
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%lu %02lu:%02lu:%02lu",
+             days, hours, minutes, seconds);
+
+    return String(buf);
 }

@@ -2,24 +2,15 @@
 #include "iotHA.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Switch object define
-HASwitch grid("grid");
-// HASwitch beeps("beeps");
-// HASwitch lcdblacklight("lcdblacklight");
-// HASwitch returnlcd("returnlcd");
-// HASwitch powersaveing("powersaveing");
-// HASwitch overtemp("overtemp");
-// HASwitch ledlight("ledlight");
-// HASwitch buzzer("buzzer");
-// HASwitch dualout("dualout");
-// HASwitch overloadres("overloadres");
-// HASwitch transfer("transfer");
+// Diagnostic object define
+HASensor ipAddress("ip_address");
+HASensor macAddress("mac_address");
+HASensor uptime("uptime");
+HASensor rssi("rssi");
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Selection object define
-// HASelect InputRang("ACInputRang");
-// HASelect PrioritySelect("PrioritySelect");
-// HASelect OutputSelect("OutputSelect");
+// Switch object define
+HASwitch grid("grid");
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Sensor object define
@@ -41,10 +32,19 @@ HASensorNumber Temp("Temp");
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // sent inverter data to MQTT broker
+void HA_Diagnostic()
+{
+    ipAddress.setValue(WiFi.localIP().toString().c_str());
+    macAddress.setValue(MacAddr);
+    uptime.setValue("10230");
+    rssi.setValue("85");
+}
+
 void iotHArun()
 {
     if (!inv.test)
     {
+        /////////////////////////////////////////////////////
         float power;
         LoadPercent.setValue(inv.data.loadPercent);
         EnergyDaily.setValue(energy_kWh);
@@ -64,17 +64,37 @@ void iotHArun()
     }
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+// Home Assistant setup
 void iotHAsetup()
 {
     Serial.println("Home assistnt setup: ");
-    /////////////////////////////////////////////////////////////////////////////
+
     // set device's details (optional)
     device.setName(DEVICE_NAME);
     device.setSoftwareVersion(D_SoftwareVertion);
     device.setManufacturer(D_Mfac);
     device.setModel(D_Model);
+    
+    /////////////////////////////////////////////////////////////////////////////
+    // Diagnostic info
+
+    ipAddress.setName("IP Address");
+    ipAddress.setIcon("mdi:ip-network");
+    ipAddress.setStateClass("Diagnostic");
+
+    macAddress.setName("MAC Address");
+    macAddress.setIcon("mdi:lan-connect");
+    macAddress.setStateClass("Diagnostic");
+
+    uptime.setName("Uptime");
+    uptime.setIcon("mdi:timer-sand");
+    uptime.setUnitOfMeasurement("seconds");
+    uptime.setStateClass("Diagnostic");
+
+    rssi.setName("WiFi RSSI");
+    rssi.setIcon("mdi:wifi-strength-4");
+    rssi.setUnitOfMeasurement("dBm");
+    rssi.setStateClass("Diagnostic");
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Switch device state
@@ -82,77 +102,6 @@ void iotHAsetup()
     grid.setName("Grid Tie");
     grid.setIcon("mdi:transmission-tower-export");
     grid.getCurrentState();
-
-    // beeps.onCommand(BeepsInterrupt);
-    // beeps.setName("Beeps While Primary Suorce Interrupt");
-    // beeps.setIcon("mdi:bell-ring");
-    // beeps.getCurrentState();
-
-    // lcdblacklight.onCommand(Blacklight);
-    // lcdblacklight.setName("LCD Blacklight");
-    // lcdblacklight.setIcon("mdi:monitor-shimmer");
-    // lcdblacklight.getCurrentState();
-
-    // returnlcd.onCommand(ReturnToPage);
-    // returnlcd.setName("Return To The Main LCD Page");
-    // returnlcd.setIcon("mdi:home");
-    // returnlcd.getCurrentState();
-
-    // powersaving.onCommand(PowerSavingMode);
-    // powersaving.setName("Power Saving Mode");
-    // powersaving.setIcon("mdi:power-standby");
-    // powersaving.getCurrentState();
-
-    // overtemp.onCommand(OverTempAutoRestart);
-    // overtemp.setName("Over Temp Auto Restart");
-    // overtemp.setIcon("mdi:thermometer-alert");
-    // overtemp.getCurrentState();
-
-    // ledlight.onCommand(LedPatternlight);
-    // ledlight.setName("Led Pattern Light");
-    // ledlight.setIcon("mdi:home");
-    // ledlight.getCurrentState();
-
-    // buzzer.onCommand(Buzzer);
-    // buzzer.setName("Buzzer");
-    // buzzer.setIcon("mdi:bell-ring");
-    // buzzer.getCurrentState();
-
-    // dualout.onCommand(DualOutput);
-    // dualout.setName("Dual Output");
-    // dualout.setIcon("mdi:power-socket-au");
-    // dualout.getCurrentState();
-
-    // overloadres.onCommand(OverloadAutoRestarte);
-    // overloadres.setName("Overload Auto Restart");
-    // overloadres.setIcon("mdi:transmission-tower-off");
-    // overloadres.getCurrentState();
-
-    // transfer.onCommand(TransferToBypassOverload);
-    // transfer.setName("Transfer To Bypass Overload");
-    // transfer.setIcon("mdi:transmission-tower-import");
-    // transfer.getCurrentState();
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Selection AC Input Rang
-    // InputRang.setOptions("appliance;ups");  // use semicolons as separator of options
-    // InputRang.onCommand(ACInputRang);
-    // InputRang.setIcon("mdi:home");
-    // InputRang.setName("AC Input Rang");
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Selection Output Source Priority
-    // PrioritySelect.setOptions("utilty;solar;sbu"); // use semicolons as separator of options
-    // PrioritySelect.onCommand(OutputSourcePriority);
-    // PrioritySelect.setIcon("mdi:solar-power");
-    // PrioritySelect.setName("Output Source Priority");
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Selection Output Voltage
-    // OutputSelect.setOptions("220;230;240");  // use semicolons as separator of options
-    // OutputSelect.onCommand(Voltageage);
-    // OutputSelect.setIcon("mdi:flash-triangle");        // optional
-    // OutputSelect.setName("Output Voltage");  // optional
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Name sensor device state
@@ -231,18 +180,12 @@ void iotHAsetup()
 
     mqtt.begin(MQTT_IP, PORT, MQTT_USERNAME, MQTT_PASSWORD);
 
-    // Serial.printf("MQTT_IP: %s\n", MQTT_IP);
-    // Serial.printf("PORT: %s\n", PORT);
-    // Serial.printf("MQTT_USERNAME: %s\n", MQTT_USERNAME);
-    // Serial.printf("MQTT_PASSWORD: %s\n", MQTT_PASSWORD);
-
     Serial.println("Home assistnt begin: ");
     delay(1000);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
 // sent switch command to inverter
-
 void GridTie(bool state, HASwitch *sender)
 {
     digitalWrite(LED, (state ? HIGH : LOW));
@@ -256,194 +199,3 @@ void GridTie(bool state, HASwitch *sender)
         inv.valueToinv("GridTieOperation", 0);
     }
 }
-
-// void BeepsInterrupt(bool state, HASwitch *sender)
-// {
-//     sender->setState(state); // report state back to the Home Assistant
-//     if (state)
-//     {
-//         inv.cmd_inv("beeps on");
-//     }
-//     if (!state)
-//     {
-//         inv.cmd_inv("beeps off");
-//     }
-// }
-
-// void Blacklight(bool state, HASwitch* sender) {
-//   sender->setState(state);  // report state back to the Home Assistant
-//   if (state) {
-//     inv.cmd_inv("blacklight on");
-//   }
-//   if (!state) {
-//     inv.cmd_inv("blacklight off");
-//   }
-// }
-
-// void ReturnToPage(bool state, HASwitch *sender)
-// {
-//     sender->setState(state); // report state back to the Home Assistant
-//     if (state)
-//     {
-//         inv.cmd_inv("returnpage on");
-//     }
-//     if (!state)
-//     {
-//         inv.cmd_inv("returnpage off");
-//     }
-// }
-
-// void PowerSavingMode(bool state, HASwitch* sender) {
-//   sender->setState(state);  // report state back to the Home Assistant
-//   if (state) {
-//     inv.cmd_inv("saving on");
-//   }
-//   if (!state) {
-//     inv.cmd_inv("saving off");
-//   }
-// }
-
-// void OverTempAutoRestart(bool state, HASwitch *sender)
-// {
-//     sender->setState(state); // report state back to the Home Assistant
-//     if (state)
-//     {
-//         inv.cmd_inv("overtemp on");
-//     }
-//     if (!state)
-//     {
-//         inv.cmd_inv("overtemp off");
-//     }
-// }
-
-// void LedPatternlight(bool state, HASwitch* sender) {
-//   sender->setState(state);  // report state back to the Home Assistant
-//   if (state) {
-//     inv.cmd_inv("ledpattern on");
-//   }
-//   if (!state) {
-//     inv.cmd_inv("ledpattern off");
-//   }
-// }
-
-// void Buzzer(bool state, HASwitch *sender)
-// {
-//     sender->setState(state); // report state back to the Home Assistant
-//     if (state)
-//     {
-//         inv.cmd_inv("buzzer on");
-//     }
-//     if (!state)
-//     {
-//         inv.cmd_inv("buzzer off");
-//     }
-// }
-
-// void DualOutput(bool state, HASwitch *sender)
-// {
-//     sender->setState(state); // report state back to the Home Assistant
-//     if (state)
-//     {
-//         inv.cmd_inv("dualoutput on");
-//     }
-//     if (!state)
-//     {
-//         inv.cmd_inv("dualoutput off");
-//     }
-// }
-
-// void OverloadAutoRestarte(bool state, HASwitch *sender)
-// {
-//     sender->setState(state); // report state back to the Home Assistant
-//     if (state)
-//     {
-//         inv.cmd_inv("overload on");
-//     }
-//     if (!state)
-//     {
-//         inv.cmd_inv("overload off");
-//     }
-// }
-
-// void TransferToBypassOverload(bool state, HASwitch *sender)
-// {
-//     sender->setState(state); // report state back to the Home Assistant
-//     if (state)
-//     {
-//         inv.cmd_inv("bypass on");
-//     }
-//     if (!state)
-//     {
-//         inv.cmd_inv("bypass off");
-//     }
-// }
-
-// void ACInputRang(int8_t index, HASelect *sender)
-// {
-//     switch (index)
-//     {
-//     case 0:
-//         inv.cmd_inv("appliance");
-//         break;
-//     case 1:
-//         inv.cmd_inv("ups");
-//         break;
-//     default:
-//         return;
-//     }
-
-//     sender->setState(index); // report the selected option back to the HA panel
-//     // it may return null
-//     if (sender->getCurrentOption())
-//     {
-//         Serial.print("Current option: ");
-//         Serial.println(sender->getCurrentOption());
-//     }
-// }
-
-// void OutputSourcePriority(int8_t index, HASelect *sender)
-// {
-//     switch (index)
-//     {
-//     case 0:
-//         inv.cmd_inv("utility");
-//         break;
-//     case 1:
-//         inv.cmd_inv("solar");
-//         break;
-//     case 2:
-//         inv.cmd_inv("sbu");
-//         break;
-//     default:
-//         return;
-//     }
-//     sender->setState(index); // report the selected option back to the HA panel
-//     // it may return null
-//     if (sender->getCurrentOption())
-//     {
-//         Serial.print("Current option: ");
-//         Serial.println(sender->getCurrentOption());
-//     }
-// }
-
-// void Voltageage(int8_t index, HASelect* sender) {
-//   switch (index) {
-//     case 0:
-//       inv.cmd_inv("output 220");
-//       break;
-//     case 1:
-//       inv.cmd_inv("output 230");
-//       break;
-//     case 2:
-//       inv.cmd_inv("output 240");
-//       break;
-//     default:
-//       return;
-//   }
-//   sender->setState(index);  // report the selected option back to the HA panel
-//   // it may return null
-//   if (sender->getCurrentOption()) {
-//     Serial.print("Current option: ");
-//     Serial.println(sender->getCurrentOption());
-//   }
-// }
