@@ -42,7 +42,7 @@ void setup()
   // === Device Configuration ===
   mac_config();
   WiFi.onEvent(WiFiEvent);
-  wifi_Setup();
+  wifiSetup();
   /////////////////////////////////////////////////////
 
   iotHAsetup();
@@ -142,7 +142,7 @@ void TaskSub(void *pvParameters) // CPU Core1
     fileManage();
     mqtt.loop();
     wsloop();
-    restart();
+    restartCheck();
     APmode();
 
     if ((millis() - lastStack) > 10000)
