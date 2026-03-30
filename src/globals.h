@@ -61,6 +61,7 @@ extern File fsUploadFile;
 
 // define your default values here, if there are different values in config.json, they are overwritten.
 extern char DEVICE_NAME[28]; //= "INVERTER";  //"Anern 4.2kW";  //"ARRTECH INVERTER";
+extern char DEVICE_PASS[28]; //= "12345678";
 extern char WIFI_NAME[30];
 extern char PASSWORD[25];
 
