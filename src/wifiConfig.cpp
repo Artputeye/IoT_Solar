@@ -7,36 +7,47 @@ static bool wifiConfigured = false;
 
 const uint8_t AP_PIN = 0;
 static const unsigned long HOLD_MS = 5000;
-static const unsigned long WIFI_TIMEOUT = 5 * 60 * 1000;
+static const unsigned long WIFI_TIMEOUT = 2 * 60 * 1000;
 
 // ===== State =====
 static bool pressed = false;
 static bool apModeActive = false;
 static unsigned long pressStart = 0;
 
-static float lastPower = 0;
-static unsigned long lastChangeTime = 0;
+// Watchdog logic uses inv.lastResponseTime to check communication timeout
 
 // =====================================================
 // Restart logic
 // =====================================================
 void restartCheck()
 {
-    float power = inv.data.ActivePower;
-
     if (inv.RunMode)
     {
-        if (power != lastPower)
+        if (millis() - inv.lastResponseTime >= WIFI_TIMEOUT)
         {
-            lastPower = power;
-            lastChangeTime = millis();
-        }
-
-        if (millis() - lastChangeTime >= WIFI_TIMEOUT)
-        {
-            Serial.println("⚠️ Power stuck → Restarting...");
+            Serial.println("⚠️ Inverter Communication Lost (WIFI Timeout) → Restarting...");
             vTaskDelay(pdMS_TO_TICKS(1000));
             ESP.restart();
+        }
+    }
+
+    // WiFi Reconnection Watchdog for STA mode
+    if (wifimode == 1)
+    {
+        static unsigned long lastWiFiCheck = 0;
+        if (WiFi.status() != WL_CONNECTED)
+        {
+            if (millis() - lastWiFiCheck >= 15000) // check and retry every 15 seconds
+            {
+                lastWiFiCheck = millis();
+                Serial.println("🔄 WiFi disconnected, attempting to reconnect...");
+                WiFi.disconnect();
+                WiFi.begin(WIFI_NAME, PASSWORD);
+            }
+        }
+        else
+        {
+            lastWiFiCheck = millis(); // Reset timer when connected
         }
     }
 
@@ -89,7 +100,7 @@ void wifiSetup()
     }
 
     setupWiFiMode();
-    lastChangeTime = millis();
+    inv.lastResponseTime = millis();
 }
 
 // =====================================================
@@ -292,20 +303,7 @@ void WiFiEvent(WiFiEvent_t event)
 
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
         Serial.println("⚠️ WiFi disconnected");
-
         ledMode = LED_DISCONNECTED;
-
-        // ป้องกัน reconnect ถี่
-        static unsigned long lastRetry = 0;
-        if (millis() - lastRetry > 5*60*1000)
-        {
-            lastRetry = millis();
-            Serial.println("🔄 Reconnecting WiFi...");
-            if (WiFi.getMode() == WIFI_STA)
-            {
-                ESP.restart();
-            }
-        }
         break;
 
     case ARDUINO_EVENT_WIFI_STA_LOST_IP:

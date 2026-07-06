@@ -30,11 +30,20 @@ void invCommand::Response()
     Serial.println("len: " + String(len));
 
     if (len == 110)
+    {
       parseQPIGS(invData);
+      lastResponseTime = millis();
+    }
     if (len == 112)
+    {
       parseQPIRI(invData);
+      lastResponseTime = millis();
+    }
     if (len == 36)
+    {
       parseQPIWS(invData);
+      lastResponseTime = millis();
+    }
 
     vTaskDelay(10);
   }
@@ -150,7 +159,7 @@ void invCommand::cmd_inv(String data)
 
   if (data == "QFLAG") // Device flag status inquiry
   {
-    Serial2.write(QFLAG, sizeof(QPIRI));
+    Serial2.write(QFLAG, sizeof(QFLAG));
     if (print)
     {
       sentinv(data);
@@ -159,7 +168,7 @@ void invCommand::cmd_inv(String data)
 
   if (data == "QPIWS") // DeviceWarning Status inquiry
   {
-    Serial2.write(QPIWS, sizeof(QPIRI));
+    Serial2.write(QPIWS, sizeof(QPIWS));
     if (print)
     {
       sentinv(data);
@@ -168,7 +177,7 @@ void invCommand::cmd_inv(String data)
 
   if (data == "QDI") // The default setting value information
   {
-    Serial2.write(QDI, sizeof(QPIRI));
+    Serial2.write(QDI, sizeof(QDI));
     if (print)
     {
       sentinv(data);
@@ -177,7 +186,7 @@ void invCommand::cmd_inv(String data)
 
   if (data == "QMOD") // The default setting value information
   {
-    Serial2.write(QMOD, sizeof(QPIRI));
+    Serial2.write(QMOD, sizeof(QMOD));
     if (print)
     {
       sentinv(data);

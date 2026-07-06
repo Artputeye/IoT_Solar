@@ -169,14 +169,18 @@ void iotHAsetup()
     uint16_t PORT = atoi(MQTT_PORT);
 
     // IP converse
-    byte octets[4];
-    if (sscanf(MQTT_ADDR, "%d.%d.%d.%d", &octets[0], &octets[1], &octets[2], &octets[3]) == 4)
+    IPAddress MQTT_IP(0, 0, 0, 0);
+    int o0 = 0, o1 = 0, o2 = 0, o3 = 0;
+    if (sscanf(MQTT_ADDR, "%d.%d.%d.%d", &o0, &o1, &o2, &o3) == 4)
     {
-        IPAddress ipAddress(octets[0], octets[1], octets[2], octets[3]);
+        MQTT_IP = IPAddress(o0, o1, o2, o3);
         Serial.print("Parsed IP address: ");
-        Serial.println(ipAddress);
+        Serial.println(MQTT_IP);
     }
-    IPAddress MQTT_IP(octets[0], octets[1], octets[2], octets[3]);
+    else
+    {
+        Serial.println("❌ Failed to parse MQTT IP Address!");
+    }
 
     mqtt.begin(MQTT_IP, PORT, MQTT_USERNAME, MQTT_PASSWORD);
 

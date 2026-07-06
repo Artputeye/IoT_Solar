@@ -12,6 +12,7 @@ public:
   String serialData;
   String faultList;
   unsigned int len;
+  unsigned long lastResponseTime = 0;
 
   // parameter setting
   bool debug1 = false; // debug1
