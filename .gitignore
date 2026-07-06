@@ -2,4 +2,5 @@
 .vscode/
 include/
 lib/
-Solar.code-workspace
+compile_commands.json
+IoT_Solar.code-workspace

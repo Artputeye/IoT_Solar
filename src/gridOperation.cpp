@@ -16,7 +16,7 @@ unsigned long lastGridOpr = 0;
 unsigned long lastGridCheck = 0;
 unsigned long lastEnergy = 0;
 /////////////////////////////////////////////////////////////////////////////////
-const unsigned long qvalInterval = 3000;
+const unsigned long qvalInterval = 5000;
 const unsigned long qrateInterval = 10000;
 const unsigned long resInterval = 100;
 const unsigned long fileInterval = 15 * 60 * 1000; //record to file every 15 minutes

@@ -9,7 +9,6 @@ extern char MacAddr[18];
 
 // ===== Core =====
 void wifiSetup();
-void wifiLoop();
 void restartCheck();
 
 // ===== WiFi Mode =====
